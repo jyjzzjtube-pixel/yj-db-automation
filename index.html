@@ -152,8 +152,8 @@ let D={tab:'dash',customers:[],stores:[],brands:[],editId:null,search:'',fGrade:
   cfRegion:'',cfBudgetMin:'',cfBudgetMax:'',cfBizType:'',cfAreaMin:'',cfAreaMax:'',cfOpen:false,
   sfDistrict:'',sfRentMin:'',sfRentMax:'',sfDepositMin:'',sfDepositMax:'',sfPremiumMin:'',sfPremiumMax:'',sfAreaMin:'',sfAreaMax:'',sfFloor:'',sfOpen:false,
   custCats:['차알 DB','내일사장 DB'],storeCats:['내일사장DB','원윌앤코DB','창업원DB','황선응 팀장 DB'],fCustCat:'all',fStoreCat:'all'};
-try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';}}catch{}
-function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest}));}catch{}}
+try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';D.smsHistory=s.smsHistory||[];D.aligoProxy=s.aligoProxy||'direct';}}catch{}
+function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct'}));}catch{}}
 function R(){renderTabs();renderMain();save();}
 
 function renderTabs(){$('tabs').innerHTML=TABS.map(t=>{let badge='';if(t.id==='dash'){const todos=getTodos();if(todos.length)badge=`<span style="position:absolute;top:2px;right:2px;background:var(--c);color:#fff;font-size:8px;width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center">${todos.length}</span>`;}return`<div class="tab${D.tab===t.id?' on':''}" style="position:relative" onclick="D.tab='${t.id}';D.editId=null;D.search='';R()"><i>${t.icon}</i>${t.label}${badge}</div>`;}).join('');}
@@ -815,7 +815,13 @@ function renderSettings(el){el.innerHTML=`<div style="font-size:18px;font-weight
 <div style="font-size:10px;color:#666;margin-bottom:10px;line-height:1.5">알리고 가입 → <a href="https://smartsms.aligo.in/admin/api/auth.html" target="_blank" style="color:var(--c);font-weight:700">API Key 발급</a> → 아래 입력 → 고객 선택 후 바로 발송<br>건당 SMS 8.4원 / LMS 25원 · 테스트 모드로 무료 시험 가능</div>
 <div class="row r2"><div><label class="lbl">API Key</label><input class="inp" id="aligoKey" value="${esc(D.aligoKey||'')}" onchange="D.aligoKey=this.value;save()" placeholder="알리고 API Key"></div><div><label class="lbl">사용자 ID</label><input class="inp" id="aligoId" value="${esc(D.aligoId||'')}" onchange="D.aligoId=this.value;save()" placeholder="알리고 로그인 ID"></div></div>
 <div class="row r2"><div><label class="lbl">발신번호</label><input class="inp" id="aligoSender" value="${esc(D.aligoSender||'')}" onchange="D.aligoSender=this.value;save()" placeholder="01012345678"></div><div><label class="lbl">테스트모드</label><select class="inp" onchange="D.aligoTest=this.value;save()"><option value="Y"${(D.aligoTest||'Y')==='Y'?' selected':''}>Y (무료 테스트)</option><option value="N"${D.aligoTest==='N'?' selected':''}>N (실제 발송)</option></select></div></div>
+<div class="row r2" style="margin-top:8px"><div><label class="lbl">CORS 프록시</label><select class="inp" onchange="D.aligoProxy=this.value;save()"><option value="direct"${(D.aligoProxy||'direct')==='direct'?' selected':''}>직접 연결</option><option value="allorigins"${D.aligoProxy==='allorigins'?' selected':''}>AllOrigins 프록시</option><option value="corsproxy"${D.aligoProxy==='corsproxy'?' selected':''}>CORS Proxy</option></select></div><div style="display:flex;gap:4px;align-items:flex-end"><button class="btn" style="flex:1;background:#1565C0;color:#fff;font-size:11px;min-height:36px" onclick="testAligoConn()">🔍 연결 테스트</button><button class="btn" style="flex:1;background:#2E7D32;color:#fff;font-size:11px;min-height:36px" onclick="checkAligoBalance()">💰 잔액 확인</button></div></div>
+<div id="aligoTestResult" style="margin-top:8px"></div>
 ${D.aligoKey&&D.aligoId&&D.aligoSender?'<div style="padding:8px;background:#E8F5E9;border-radius:8px;font-size:11px;color:#2E7D32;font-weight:700;margin-top:8px">✅ API 설정 완료 — 고객 선택 → 📩 문자에서 바로 발송 가능</div>':'<div style="padding:8px;background:#FFF3E0;border-radius:8px;font-size:11px;color:#E65100;margin-top:8px">⚠️ API Key, ID, 발신번호 모두 입력해야 발송 가능</div>'}
+<div style="margin-top:12px;border-top:1px solid #eee;padding-top:10px"><div style="font-size:12px;font-weight:800;color:#555;margin-bottom:8px">📜 최근 발송 이력 <span style="font-weight:400;color:#999">(${(D.smsHistory||[]).length}건)</span></div>
+${(D.smsHistory||[]).length?D.smsHistory.slice(0,5).map(h=>'<div style="padding:6px 10px;background:#f9f9f9;border-radius:8px;margin-bottom:4px;font-size:11px;line-height:1.5"><span style="color:#888">'+h.date+'</span> <b>'+h.count+'명</b> '+(h.mode==='test'?'<span style="color:#E65100">[테스트]</span>':'<span style="color:#2E7D32">[실발송]</span>')+' '+(h.success?'✅':'❌')+' <span style="color:#666">'+esc(h.msg.substring(0,30))+'...</span></div>').join(''):'<div style="font-size:11px;color:#999;padding:8px 0">아직 발송 이력이 없습니다</div>'}
+${(D.smsHistory||[]).length>0?'<button class="btn btn-sm" onclick="if(confirm(\'발송 이력을 모두 삭제하시겠습니까?\')){D.smsHistory=[];save();R()}" style="margin-top:4px;font-size:10px;color:#C0392B;border:1px solid #eee">🗑️ 이력 삭제</button>':''}
+</div>
 </div></div>
 <div class="c mt12"><div class="c-h" style="color:#8E24AA">🤖 AI 분석 연동</div><div class="c-b">
 <div style="font-size:11px;color:#666;margin-bottom:10px;line-height:1.6">분석 유형 선택 → <b>프롬프트 자동 생성</b> → AI에 <b>붙여넣기</b></div>
@@ -922,6 +928,63 @@ function copySMSAll(){const msg=document.getElementById('smsTxt')?.value||'';con
 let txt='📩 문자 발송 ('+sel.length+'명)\n메시지:\n'+msg+'\n\n수신자:\n';
 sel.forEach((c,i)=>{txt+=(i+1)+'. '+c.name+' '+c.phone+'\n';});
 navigator.clipboard.writeText(txt).then(()=>alert('✅ 복사 완료!')).catch(()=>prompt('복사:',txt));}
+// ═══ 알리고 API 프록시 지원 ═══
+async function aligoFetch(url,body){
+const proxy=D.aligoProxy||'direct';
+if(proxy==='allorigins'){
+const encoded=encodeURIComponent(url+'?'+body.toString());
+const r=await fetch('https://api.allorigins.win/raw?url='+encoded);
+return r.json();
+}else if(proxy==='corsproxy'){
+const r=await fetch('https://corsproxy.io/?'+encodeURIComponent(url),{method:'POST',body});
+return r.json();
+}else{
+const r=await fetch(url,{method:'POST',body});
+return r.json();
+}}
+
+// ═══ 연결 테스트 ═══
+async function testAligoConn(){
+if(!D.aligoKey||!D.aligoId)return alert('API Key와 사용자 ID를 입력하세요');
+const el=document.getElementById('aligoTestResult');
+el.innerHTML='<div style="padding:8px;background:#E3F2FD;border-radius:8px;font-size:11px;color:#1565C0">⏳ 연결 테스트 중...</div>';
+try{
+const body=new URLSearchParams();body.append('key',D.aligoKey);body.append('user_id',D.aligoId);
+const d=await aligoFetch('https://apis.aligo.in/remain/',body);
+if(d.result_code===1){
+el.innerHTML='<div style="padding:8px;background:#E8F5E9;border-radius:8px;font-size:11px;color:#2E7D32;font-weight:700">✅ 연결 성공! SMS 잔여: '+d.SMS_CNT+'건 / LMS: '+(d.LMS_CNT||0)+'건 / MMS: '+(d.MMS_CNT||0)+'건</div>';
+}else{
+el.innerHTML='<div style="padding:8px;background:#FFEBEE;border-radius:8px;font-size:11px;color:#C62828">❌ 연결 실패: '+(d.message||'API Key/ID 확인 필요')+'</div>';
+}
+}catch(e){
+el.innerHTML='<div style="padding:8px;background:#FFF3E0;border-radius:8px;font-size:11px;color:#E65100">⚠️ 네트워크 오류: '+e.message+'<br>→ CORS 프록시 설정을 변경해보세요</div>';
+}}
+
+// ═══ 잔액 확인 ═══
+async function checkAligoBalance(){
+if(!D.aligoKey||!D.aligoId)return alert('API Key와 사용자 ID를 입력하세요');
+const el=document.getElementById('aligoTestResult');
+el.innerHTML='<div style="padding:8px;background:#E3F2FD;border-radius:8px;font-size:11px;color:#1565C0">⏳ 잔액 확인 중...</div>';
+try{
+const body=new URLSearchParams();body.append('key',D.aligoKey);body.append('user_id',D.aligoId);
+const d=await aligoFetch('https://apis.aligo.in/remain/',body);
+if(d.result_code===1){
+el.innerHTML='<div style="padding:10px;background:#E8F5E9;border-radius:8px;font-size:12px;color:#1B5E20"><b>💰 잔여 문자</b><br>SMS: <b>'+d.SMS_CNT+'</b>건 · LMS: <b>'+(d.LMS_CNT||0)+'</b>건 · MMS: <b>'+(d.MMS_CNT||0)+'</b>건</div>';
+}else{
+el.innerHTML='<div style="padding:8px;background:#FFEBEE;border-radius:8px;font-size:11px;color:#C62828">❌ 조회 실패: '+(d.message||'')+'</div>';
+}
+}catch(e){
+el.innerHTML='<div style="padding:8px;background:#FFF3E0;border-radius:8px;font-size:11px;color:#E65100">⚠️ '+e.message+'</div>';
+}}
+
+// ═══ 발송 이력 저장 ═══
+function addSmsHistory(count,msg,mode,success){
+if(!D.smsHistory)D.smsHistory=[];
+D.smsHistory.unshift({date:new Date().toLocaleString('ko-KR'),count,msg:msg.substring(0,100),mode,success});
+if(D.smsHistory.length>50)D.smsHistory=D.smsHistory.slice(0,50);
+save();
+}
+
 async function sendAligo(){const msg=document.getElementById('smsTxt')?.value||'';const sel=getSelCusts();
 if(!msg)return alert('메시지를 입력해주세요');
 if(!D.aligoKey||!D.aligoId||!D.aligoSender)return alert('⚠️ 설정탭에서 알리고 API Key/ID/발신번호를 입력해주세요');
@@ -935,19 +998,19 @@ if(sel.length===1){
 body.append('receiver',sel[0].phone.replace(/-/g,''));
 body.append('msg',msg.replace(/\[이름\]/g,sel[0].name||'고객님'));
 if(msg.length>45)body.append('msg_type','LMS');
-const r=await fetch('https://apis.aligo.in/send/',{method:'POST',body});const d=await r.json();
-if(d.result_code>0){$('modal').innerHTML='';alert('✅ 발송 성공!\n\n성공: '+d.success_cnt+'건\n실패: '+d.error_cnt+'건'+(mode?'\n\n(테스트 모드 - 실제 미발송)':''));}
-else{alert('❌ 발송 실패\n\n'+d.message);}
+const d=await aligoFetch('https://apis.aligo.in/send/',body);
+if(d.result_code>0){addSmsHistory(1,msg,mode?'test':'real',true);$('modal').innerHTML='';alert('✅ 발송 성공!\n\n성공: '+d.success_cnt+'건\n실패: '+d.error_cnt+'건'+(mode?'\n\n(테스트 모드 - 실제 미발송)':''));}
+else{addSmsHistory(1,msg,mode?'test':'real',false);alert('❌ 발송 실패\n\n'+d.message);}
 }else{
 body.append('cnt',sel.length);
 const isLong=msg.length>45;body.append('msg_type',isLong?'LMS':'SMS');
 if(isLong)body.append('title','안내문자');
 sel.forEach((c,i)=>{body.append('rec_'+(i+1),c.phone.replace(/-/g,''));body.append('msg_'+(i+1),msg.replace(/\[이름\]/g,c.name||'고객님'));});
-const r=await fetch('https://apis.aligo.in/send_mass/',{method:'POST',body});const d=await r.json();
-if(d.result_code>0){$('modal').innerHTML='';alert('✅ 대량 발송 성공!\n\n성공: '+d.success_cnt+'건\n실패: '+d.error_cnt+'건'+(mode?'\n\n(테스트 모드 - 실제 미발송)':''));}
-else{alert('❌ 발송 실패\n\n'+d.message);}
+const d=await aligoFetch('https://apis.aligo.in/send_mass/',body);
+if(d.result_code>0){addSmsHistory(sel.length,msg,mode?'test':'real',true);$('modal').innerHTML='';alert('✅ 대량 발송 성공!\n\n성공: '+d.success_cnt+'건\n실패: '+d.error_cnt+'건'+(mode?'\n\n(테스트 모드 - 실제 미발송)':''));}
+else{addSmsHistory(sel.length,msg,mode?'test':'real',false);alert('❌ 발송 실패\n\n'+d.message);}
 }
-}catch(e){alert('❌ 네트워크 오류\n\n'+e.message+'\n\n알리고 서버 연결을 확인해주세요');}
+}catch(e){addSmsHistory(sel.length,msg,mode?'test':'real',false);alert('❌ 네트워크 오류\n\n'+e.message+'\n\n💡 설정탭에서 CORS 프록시를 변경해보세요\n(AllOrigins 또는 CORS Proxy)');}
 finally{if(btn){btn.disabled=false;btn.textContent='📩 알리고 발송 ('+(mode?'테스트':'실발송')+')';}}}
 
 function exportAll(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands},null,2)],{type:'application/json'}));a.download=`DB백업_${today()}.json`;a.click();}
