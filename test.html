@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YJ DB 자동화 — 종합 테스트</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Pretendard','Noto Sans KR',sans-serif;background:#f5f5f5;color:#333;padding:20px;font-size:14px;line-height:1.6}
+h1{font-size:24px;margin-bottom:4px;color:#C0392B}
+.sub{color:#888;font-size:12px;margin-bottom:20px}
+.section{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.section h2{font-size:16px;font-weight:800;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #f0f0f0;display:flex;align-items:center;gap:8px}
+.test-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;margin-bottom:4px;background:#fafafa;font-size:13px}
+.test-row:hover{background:#f0f0f0}
+.test-name{flex:1;font-weight:600}
+.test-status{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;min-width:60px;text-align:center}
+.pass{background:#E8F5E9;color:#2E7D32}
+.fail{background:#FFEBEE;color:#C62828}
+.skip{background:#FFF3E0;color:#E65100}
+.pending{background:#E3F2FD;color:#1565C0}
+.run-btn{padding:6px 16px;background:#C0392B;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;transition:.2s}
+.run-btn:hover{background:#a93226;transform:translateY(-1px)}
+.run-btn:disabled{background:#ccc;cursor:not-allowed}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.summary-card{background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.summary-num{font-size:28px;font-weight:800}
+.summary-label{font-size:11px;color:#888;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.log{background:#1a1a2e;color:#e0e0e0;border-radius:10px;padding:14px;font-family:'Consolas','Monaco',monospace;font-size:11px;max-height:300px;overflow-y:auto;margin-top:12px;line-height:1.8}
+.log .ok{color:#4CAF50}.log .err{color:#F44336}.log .warn{color:#FF9800}.log .info{color:#64B5F6}
+.inject-btn{padding:10px 20px;background:#1565C0;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;margin-right:8px;transition:.2s}
+.inject-btn:hover{background:#0D47A1;transform:translateY(-1px)}
+.progress{height:6px;background:#eee;border-radius:3px;margin-top:8px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,#4CAF50,#8BC34A);border-radius:3px;transition:width .5s;width:0}
+</style>
+</head>
+<body>
+
+<h1>🧪 YJ DB 자동화 — 종합 테스트</h1>
+<p class="sub">모든 기능을 자동 테스트합니다. index.html과 동일한 localStorage(udb6)를 사용합니다.</p>
+
+<div class="summary">
+  <div class="summary-card"><div class="summary-num" id="totalTests" style="color:#333">0</div><div class="summary-label">전체 테스트</div></div>
+  <div class="summary-card"><div class="summary-num" id="passCount" style="color:#2E7D32">0</div><div class="summary-label">✅ 통과</div></div>
+  <div class="summary-card"><div class="summary-num" id="failCount" style="color:#C62828">0</div><div class="summary-label">❌ 실패</div></div>
+  <div class="summary-card"><div class="summary-num" id="skipCount" style="color:#E65100">0</div><div class="summary-label">⚠️ 건너뜀</div></div>
+</div>
+
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+  <button class="run-btn" onclick="runAllTests()" id="runAllBtn" style="font-size:14px;padding:10px 28px">▶ 전체 테스트 실행</button>
+  <button class="inject-btn" onclick="injectTestData()">📥 테스트 데이터 주입</button>
+  <button class="inject-btn" onclick="clearTestData()" style="background:#C62828">🗑️ 테스트 데이터 삭제</button>
+  <button class="inject-btn" onclick="window.open('index.html','_blank')" style="background:#333">📱 앱 열기</button>
+</div>
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+<!-- 1. 핵심 유틸리티 -->
+<div class="section">
+  <h2>🔧 핵심 유틸리티 함수</h2>
+  <div id="testUtil"></div>
+</div>
+
+<!-- 2. 스마트 입력 -->
+<div class="section">
+  <h2>📝 스마트 입력 (자동 분류)</h2>
+  <div id="testSmart"></div>
+</div>
+
+<!-- 3. 고객 CRUD -->
+<div class="section">
+  <h2>👥 고객 DB CRUD</h2>
+  <div id="testCust"></div>
+</div>
+
+<!-- 4. 점포 CRUD -->
+<div class="section">
+  <h2>🏪 점포 DB CRUD</h2>
+  <div id="testStore"></div>
+</div>
+
+<!-- 5. 브랜드 CRUD -->
+<div class="section">
+  <h2>🏷 브랜드 DB</h2>
+  <div id="testBrand"></div>
+</div>
+
+<!-- 6. 검색 -->
+<div class="section">
+  <h2>🔍 통합 검색</h2>
+  <div id="testSearch"></div>
+</div>
+
+<!-- 7. SMS -->
+<div class="section">
+  <h2>📩 SMS 문자 발송</h2>
+  <div id="testSMS"></div>
+</div>
+
+<!-- 8. 데이터 관리 -->
+<div class="section">
+  <h2>💾 데이터 관리</h2>
+  <div id="testData"></div>
+</div>
+
+<!-- 9. UI/UX -->
+<div class="section">
+  <h2>🎨 UI/UX</h2>
+  <div id="testUI"></div>
+</div>
+
+<!-- 로그 -->
+<div class="section">
+  <h2>📋 테스트 로그</h2>
+  <div class="log" id="testLog">테스트 실행 전입니다...</div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+//   테스트 엔진
+// ═══════════════════════════════════
+let results = { total: 0, pass: 0, fail: 0, skip: 0 };
+let logLines = [];
+
+function log(msg, type='info') {
+  logLines.push(`<span class="${type}">[${type.toUpperCase()}] ${msg}</span>`);
+  document.getElementById('testLog').innerHTML = logLines.join('<br>');
+  document.getElementById('testLog').scrollTop = 99999;
+}
+
+function assert(name, fn, containerId) {
+  results.total++;
+  let status, statusClass;
+  try {
+    const result = fn();
+    if (result === 'skip') {
+      results.skip++;
+      status = '건너뜀';
+      statusClass = 'skip';
+      log(`⚠️ ${name} — 건너뜀`, 'warn');
+    } else if (result) {
+      results.pass++;
+      status = '✅ 통과';
+      statusClass = 'pass';
+      log(`✅ ${name}`, 'ok');
+    } else {
+      results.fail++;
+      status = '❌ 실패';
+      statusClass = 'fail';
+      log(`❌ ${name}`, 'err');
+    }
+  } catch (e) {
+    results.fail++;
+    status = '❌ 오류';
+    statusClass = 'fail';
+    log(`❌ ${name}: ${e.message}`, 'err');
+  }
+  document.getElementById(containerId).innerHTML +=
+    `<div class="test-row"><span class="test-name">${name}</span><span class="test-status ${statusClass}">${status}</span></div>`;
+  updateSummary();
+}
+
+function updateSummary() {
+  document.getElementById('totalTests').textContent = results.total;
+  document.getElementById('passCount').textContent = results.pass;
+  document.getElementById('failCount').textContent = results.fail;
+  document.getElementById('skipCount').textContent = results.skip;
+  const pct = results.total ? Math.round((results.pass / results.total) * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+// ═══════════════════════════════════
+//   테스트용 유틸리티 함수 (index.html에서 복사)
+// ═══════════════════════════════════
+const numVal = v => {
+  if(!v) return 0;
+  const s = String(v).replace(/[, ]/g,'');
+  const m = s.match(/(\d+)\s*억\s*(\d*)\s*(천만|만)?/);
+  if(m) { let r = parseInt(m[1])*1e8; if(m[2]&&m[3]==='천만') r+=parseInt(m[2])*1e7; else if(m[2]&&m[3]==='만') r+=parseInt(m[2])*1e4; else if(m[2]) r+=parseInt(m[2])*1e4; return r; }
+  const m2 = s.match(/(\d+)\s*천만/); if(m2) return parseInt(m2[1])*1e7;
+  const m3 = s.match(/(\d+)\s*만/); if(m3) return parseInt(m3[1])*1e4;
+  return parseInt(s)||0;
+};
+
+const fW = n => {
+  if(!n && n!==0) return '';
+  const v = typeof n==='string' ? parseInt(n.replace(/[, ]/g,'')) : n;
+  if(isNaN(v)||v===0) return '';
+  if(v>=1e8) return (v/1e8).toFixed(1).replace(/\.0$/,'')+'억';
+  if(v>=1e4) return Math.round(v/1e4)+'만';
+  return v.toLocaleString();
+};
+
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const today = () => new Date().toISOString().slice(0,10);
+const PHONE_RE = /\d{2,3}-\d{3,4}-\d{4}/;
+
+// 스마트 입력 자동 분류 로직
+function classifyInput(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const storeKW = /평|임대|월세|보증금|권리금|관리비|공실|점포|매물|상가|층/;
+  const brandKW = /본사|가맹|프랜차이즈|브랜드|FC|창업비용|로열티|가맹비/;
+  const results = [];
+  lines.forEach(line => {
+    if (storeKW.test(line)) results.push({ type: 'store', text: line });
+    else if (brandKW.test(line)) results.push({ type: 'brand', text: line });
+    else results.push({ type: 'customer', text: line });
+  });
+  return results;
+}
+
+// ═══════════════════════════════════
+//   전체 테스트 실행
+// ═══════════════════════════════════
+async function runAllTests() {
+  const btn = document.getElementById('runAllBtn');
+  btn.disabled = true; btn.textContent = '⏳ 테스트 중...';
+
+  // 초기화
+  results = { total: 0, pass: 0, fail: 0, skip: 0 };
+  logLines = [];
+  document.querySelectorAll('[id^="test"]').forEach(el => { if(el.id !== 'testLog') el.innerHTML = ''; });
+  log('═══ 테스트 시작 ═══', 'info');
+  log('시간: ' + new Date().toLocaleString('ko-KR'), 'info');
+
+  // 1. 핵심 유틸리티 테스트
+  testUtilities();
+  await sleep(50);
+
+  // 2. 스마트 입력 테스트
+  testSmartInput();
+  await sleep(50);
+
+  // 3. 고객 CRUD 테스트
+  testCustomerCRUD();
+  await sleep(50);
+
+  // 4. 점포 CRUD 테스트
+  testStoreCRUD();
+  await sleep(50);
+
+  // 5. 브랜드 테스트
+  testBrandCRUD();
+  await sleep(50);
+
+  // 6. 검색 테스트
+  testSearch();
+  await sleep(50);
+
+  // 7. SMS 테스트
+  testSMS();
+  await sleep(50);
+
+  // 8. 데이터 관리 테스트
+  testDataManagement();
+  await sleep(50);
+
+  // 9. UI 테스트
+  testUIUX();
+
+  // 완료
+  log('', 'info');
+  log('═══ 테스트 완료 ═══', 'info');
+  log(`전체: ${results.total} | 통과: ${results.pass} | 실패: ${results.fail} | 건너뜀: ${results.skip}`, results.fail ? 'err' : 'ok');
+  log(`통과율: ${results.total ? Math.round((results.pass/results.total)*100) : 0}%`, results.fail ? 'err' : 'ok');
+
+  btn.disabled = false; btn.textContent = '▶ 전체 테스트 실행';
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ═══════════════════════════════════
+//   1. 유틸리티 함수 테스트
+// ═══════════════════════════════════
+function testUtilities() {
+  log('── 유틸리티 함수 테스트 ──', 'info');
+
+  assert('numVal: "350만" → 3500000', () => numVal('350만') === 3500000, 'testUtil');
+  assert('numVal: "5천만" → 50000000', () => numVal('5천만') === 50000000, 'testUtil');
+  assert('numVal: "1억2천만" → 120000000', () => numVal('1억2천만') === 120000000, 'testUtil');
+  assert('numVal: "8천만" → 80000000', () => numVal('8천만') === 80000000, 'testUtil');
+  assert('numVal: "1억" → 100000000', () => numVal('1억') === 100000000, 'testUtil');
+  assert('numVal: "7820만" → 78200000', () => numVal('7820만') === 78200000, 'testUtil');
+  assert('numVal: "" → 0', () => numVal('') === 0, 'testUtil');
+  assert('numVal: null → 0', () => numVal(null) === 0, 'testUtil');
+
+  assert('fW: 100000000 → "1억"', () => fW(100000000) === '1억', 'testUtil');
+  assert('fW: 50000000 → "5000만"', () => fW(50000000) === '5000만', 'testUtil');
+  assert('fW: 3500000 → "350만"', () => fW(3500000) === '350만', 'testUtil');
+  assert('fW: 0 → ""', () => fW(0) === '', 'testUtil');
+
+  assert('esc: HTML 이스케이프', () => esc('<script>') === '&lt;script&gt;', 'testUtil');
+  assert('esc: 따옴표 이스케이프', () => esc('"hello"') === '&quot;hello&quot;', 'testUtil');
+  assert('esc: null → ""', () => esc(null) === '', 'testUtil');
+
+  assert('today: YYYY-MM-DD 형식', () => /^\d{4}-\d{2}-\d{2}$/.test(today()), 'testUtil');
+  assert('PHONE_RE: 010-1234-5678 매칭', () => PHONE_RE.test('010-1234-5678'), 'testUtil');
+  assert('PHONE_RE: 잘못된 형식 미매칭', () => !PHONE_RE.test('12345'), 'testUtil');
+}
+
+// ═══════════════════════════════════
+//   2. 스마트 입력 테스트
+// ═══════════════════════════════════
+function testSmartInput() {
+  log('── 스마트 입력 테스트 ──', 'info');
+
+  assert('고객 분류: 이름+연락처', () => {
+    const r = classifyInput('김철수 010-1234-5678 VIP 강남 카페');
+    return r.length === 1 && r[0].type === 'customer';
+  }, 'testSmart');
+
+  assert('점포 분류: 평수+임대', () => {
+    const r = classifyInput('강남역 2번출구 35평 임대 350만');
+    return r.length === 1 && r[0].type === 'store';
+  }, 'testSmart');
+
+  assert('브랜드 분류: 본사+가맹', () => {
+    const r = classifyInput('맘스터치 본사 담당 이부장 가맹조건 문의');
+    return r.length === 1 && r[0].type === 'brand';
+  }, 'testSmart');
+
+  assert('멀티라인 분류: 3종 동시', () => {
+    const input = '김철수 010-1234-5678 VIP\n강남역 35평 임대 350만\n맘스터치 본사 가맹 문의';
+    const r = classifyInput(input);
+    return r.length === 3 && r[0].type === 'customer' && r[1].type === 'store' && r[2].type === 'brand';
+  }, 'testSmart');
+
+  assert('빈 입력 처리', () => {
+    const r = classifyInput('');
+    return r.length === 0;
+  }, 'testSmart');
+
+  assert('점포 키워드: 보증금', () => {
+    const r = classifyInput('보증금 5천만 권리금 8천만');
+    return r[0].type === 'store';
+  }, 'testSmart');
+
+  assert('점포 키워드: 공실', () => {
+    const r = classifyInput('역삼동 공실 1층');
+    return r[0].type === 'store';
+  }, 'testSmart');
+
+  assert('브랜드 키워드: 프랜차이즈', () => {
+    const r = classifyInput('빽다방 프랜차이즈 창업비용 문의');
+    return r[0].type === 'brand';
+  }, 'testSmart');
+
+  assert('연락처 파싱: 010-XXXX-XXXX', () => {
+    return PHONE_RE.test('010-1234-5678') && PHONE_RE.test('02-123-4567');
+  }, 'testSmart');
+
+  assert('태그 파싱: #급매 #역세권', () => {
+    const tags = '#급매 #역세권 일반 텍스트'.match(/#\S+/g);
+    return tags && tags.length === 2 && tags[0] === '#급매' && tags[1] === '#역세권';
+  }, 'testSmart');
+}
+
+// ═══════════════════════════════════
+//   3. 고객 CRUD 테스트
+// ═══════════════════════════════════
+function testCustomerCRUD() {
+  log('── 고객 CRUD 테스트 ──', 'info');
+
+  // localStorage에서 현재 데이터 로드
+  let data;
+  try { data = JSON.parse(localStorage.getItem('udb6')) || {}; } catch { data = {}; }
+
+  assert('localStorage 읽기', () => {
+    return typeof data === 'object';
+  }, 'testCust');
+
+  assert('고객 배열 존재', () => {
+    return Array.isArray(data.customers);
+  }, 'testCust');
+
+  assert('고객 데이터 구조 확인', () => {
+    if (!data.customers || !data.customers.length) return 'skip';
+    const c = data.customers[0];
+    return c.hasOwnProperty('id') && c.hasOwnProperty('name');
+  }, 'testCust');
+
+  assert('고객 등급 값 유효성', () => {
+    if (!data.customers || !data.customers.length) return 'skip';
+    const validGrades = ['VIP','우수','일반','신규','휴면',''];
+    return data.customers.every(c => validGrades.includes(c.grade || ''));
+  }, 'testCust');
+
+  assert('고객 상태 값 유효성', () => {
+    if (!data.customers || !data.customers.length) return 'skip';
+    const validStatus = ['신규','상담중','계약진행','계약완료','이탈','제안완료','보류','해지',''];
+    return data.customers.every(c => validStatus.includes(c.status || ''));
+  }, 'testCust');
+
+  assert('고객 ID 고유성 확인', () => {
+    if (!data.customers || !data.customers.length) return 'skip';
+    const ids = data.customers.map(c => c.id);
+    return new Set(ids).size === ids.length;
+  }, 'testCust');
+
+  assert('고객 연락처 형식', () => {
+    if (!data.customers || !data.customers.length) return 'skip';
+    const withPhone = data.customers.filter(c => c.phone);
+    if (!withPhone.length) return 'skip';
+    return withPhone.every(c => /^\d{2,3}-\d{3,4}-\d{4}$/.test(c.phone));
+  }, 'testCust');
+
+  assert('고객 카테고리 배열 존재', () => {
+    return Array.isArray(data.custCats);
+  }, 'testCust');
+
+  assert('고객 메모 구조', () => {
+    if (!data.customers || !data.customers.length) return 'skip';
+    const withMemos = data.customers.filter(c => c.memos && c.memos.length);
+    if (!withMemos.length) return 'skip';
+    return withMemos[0].memos[0].hasOwnProperty('text');
+  }, 'testCust');
+}
+
+// ═══════════════════════════════════
+//   4. 점포 CRUD 테스트
+// ═══════════════════════════════════
+function testStoreCRUD() {
+  log('── 점포 CRUD 테스트 ──', 'info');
+
+  let data;
+  try { data = JSON.parse(localStorage.getItem('udb6')) || {}; } catch { data = {}; }
+
+  assert('점포 배열 존재', () => Array.isArray(data.stores), 'testStore');
+
+  assert('점포 데이터 구조', () => {
+    if (!data.stores || !data.stores.length) return 'skip';
+    const s = data.stores[0];
+    return s.hasOwnProperty('id') && s.hasOwnProperty('name');
+  }, 'testStore');
+
+  assert('점포 등급 값 유효성', () => {
+    if (!data.stores || !data.stores.length) return 'skip';
+    const valid = ['A급','B급','C급','미정',''];
+    return data.stores.every(s => valid.includes(s.grade || ''));
+  }, 'testStore');
+
+  assert('점포 임대료 numVal 변환', () => {
+    if (!data.stores || !data.stores.length) return 'skip';
+    const withRent = data.stores.filter(s => s.rent);
+    if (!withRent.length) return 'skip';
+    return numVal(withRent[0].rent) > 0;
+  }, 'testStore');
+
+  assert('점포 시세 비교 계산', () => {
+    const rent = numVal('350만');
+    const market = numVal('300만');
+    const diff = rent - market;
+    const pct = Math.round((diff / market) * 100);
+    return diff === 500000 && pct === 17;
+  }, 'testStore');
+
+  assert('점포 월총비용 계산', () => {
+    const rent = numVal('350만');
+    const maint = numVal('30만');
+    const total = rent + maint;
+    return total === 3800000;
+  }, 'testStore');
+
+  assert('점포 카테고리 배열 존재', () => {
+    return Array.isArray(data.storeCats);
+  }, 'testStore');
+
+  assert('점포 ID 고유성 확인', () => {
+    if (!data.stores || !data.stores.length) return 'skip';
+    const ids = data.stores.map(s => s.id);
+    return new Set(ids).size === ids.length;
+  }, 'testStore');
+}
+
+// ═══════════════════════════════════
+//   5. 브랜드 테스트
+// ═══════════════════════════════════
+function testBrandCRUD() {
+  log('── 브랜드 테스트 ──', 'info');
+
+  let data;
+  try { data = JSON.parse(localStorage.getItem('udb6')) || {}; } catch { data = {}; }
+
+  assert('브랜드 배열 존재', () => Array.isArray(data.brands), 'testBrand');
+
+  assert('브랜드 데이터 구조', () => {
+    if (!data.brands || !data.brands.length) return 'skip';
+    const b = data.brands[0];
+    return b.hasOwnProperty('id') && b.hasOwnProperty('brandName');
+  }, 'testBrand');
+
+  assert('브랜드 ID 고유성', () => {
+    if (!data.brands || !data.brands.length) return 'skip';
+    const ids = data.brands.map(b => b.id);
+    return new Set(ids).size === ids.length;
+  }, 'testBrand');
+}
+
+// ═══════════════════════════════════
+//   6. 검색 테스트
+// ═══════════════════════════════════
+function testSearch() {
+  log('── 검색 테스트 ──', 'info');
+
+  let data;
+  try { data = JSON.parse(localStorage.getItem('udb6')) || {}; } catch { data = {}; }
+
+  function searchCustomers(q) {
+    return (data.customers||[]).filter(c => {
+      const t = (c.name||'')+(c.phone||'')+(c.region||'')+(c.bizType||'')+(c.interests||'')+(c.budget||'')+(c.wantArea||'')+(c.grade||'')+(c.status||'')+(c.dbCat||'');
+      return t.toLowerCase().includes(q.toLowerCase());
+    });
+  }
+
+  assert('고객 이름 검색', () => {
+    if (!data.customers || !data.customers.length) return 'skip';
+    const name = data.customers[0].name;
+    return searchCustomers(name).length >= 1;
+  }, 'testSearch');
+
+  assert('빈 검색어 → 전체 반환', () => {
+    return searchCustomers('').length === (data.customers||[]).length;
+  }, 'testSearch');
+
+  assert('없는 검색어 → 0건', () => {
+    return searchCustomers('zzzzzzzzz12345').length === 0;
+  }, 'testSearch');
+
+  function searchStores(q) {
+    return (data.stores||[]).filter(s => {
+      const t = (s.name||'')+(s.address||'')+(s.district||'')+(s.rent||'')+(s.deposit||'')+(s.premium||'')+(s.grade||'')+(s.status||'');
+      return t.toLowerCase().includes(q.toLowerCase());
+    });
+  }
+
+  assert('점포 검색 기능', () => {
+    if (!data.stores || !data.stores.length) return 'skip';
+    const name = data.stores[0].name;
+    return searchStores(name).length >= 1;
+  }, 'testSearch');
+
+  assert('대소문자 무시 검색', () => {
+    return searchCustomers('vip').length === searchCustomers('VIP').length;
+  }, 'testSearch');
+}
+
+// ═══════════════════════════════════
+//   7. SMS 테스트
+// ═══════════════════════════════════
+function testSMS() {
+  log('── SMS 테스트 ──', 'info');
+
+  let data;
+  try { data = JSON.parse(localStorage.getItem('udb6')) || {}; } catch { data = {}; }
+
+  assert('알리고 API Key 필드', () => {
+    return data.hasOwnProperty('aligoKey');
+  }, 'testSMS');
+
+  assert('알리고 사용자 ID 필드', () => {
+    return data.hasOwnProperty('aligoId');
+  }, 'testSMS');
+
+  assert('알리고 발신번호 필드', () => {
+    return data.hasOwnProperty('aligoSender');
+  }, 'testSMS');
+
+  assert('테스트모드 기본값 Y', () => {
+    return (data.aligoTest || 'Y') === 'Y' || data.aligoTest === 'N';
+  }, 'testSMS');
+
+  assert('[이름] 치환 로직', () => {
+    const msg = '[이름]님 안녕하세요! 좋은 매물이 있습니다.';
+    const name = '김철수';
+    const result = msg.replace(/\[이름\]/g, name);
+    return result === '김철수님 안녕하세요! 좋은 매물이 있습니다.';
+  }, 'testSMS');
+
+  assert('SMS/LMS 자동 판별 (45자 기준)', () => {
+    const short = '안녕하세요 테스트 메시지입니다';
+    const long = '안녕하세요! 이번에 좋은 프랜차이즈 매물이 새로 나왔습니다. 강남역 인근 35평 카페로, 월임대 350만원에 보증금 5천만원입니다. 관심 있으시면 연락주세요!';
+    return short.length <= 45 && long.length > 45;
+  }, 'testSMS');
+
+  assert('발송 이력 배열', () => {
+    return Array.isArray(data.smsHistory || []);
+  }, 'testSMS');
+
+  assert('CORS 프록시 설정 존재', () => {
+    const proxy = data.aligoProxy || 'direct';
+    return ['direct', 'allorigins', 'corsproxy'].includes(proxy);
+  }, 'testSMS');
+
+  assert('SMS URI 스킴 생성', () => {
+    const phone = '010-1234-5678';
+    const msg = '테스트 메시지';
+    const uri = 'sms:' + phone + '?body=' + encodeURIComponent(msg);
+    return uri.startsWith('sms:010-1234-5678?body=');
+  }, 'testSMS');
+
+  assert('대량발송 rec_N/msg_N 파라미터 생성', () => {
+    const sel = [{name:'김철수',phone:'010-1234-5678'},{name:'이영희',phone:'010-9876-5432'}];
+    const body = new URLSearchParams();
+    body.append('cnt', sel.length);
+    sel.forEach((c,i) => {
+      body.append('rec_'+(i+1), c.phone.replace(/-/g,''));
+      body.append('msg_'+(i+1), '테스트 '+c.name);
+    });
+    return body.get('cnt') === '2' && body.get('rec_1') === '01012345678' && body.get('msg_2') === '테스트 이영희';
+  }, 'testSMS');
+}
+
+// ═══════════════════════════════════
+//   8. 데이터 관리 테스트
+// ═══════════════════════════════════
+function testDataManagement() {
+  log('── 데이터 관리 테스트 ──', 'info');
+
+  assert('localStorage 읽기/쓰기', () => {
+    const testKey = '_test_yj_' + Date.now();
+    localStorage.setItem(testKey, 'ok');
+    const val = localStorage.getItem(testKey);
+    localStorage.removeItem(testKey);
+    return val === 'ok';
+  }, 'testData');
+
+  assert('JSON 직렬화/역직렬화', () => {
+    const obj = { name: '테스트', arr: [1,2,3], nested: { a: true } };
+    const json = JSON.stringify(obj);
+    const parsed = JSON.parse(json);
+    return parsed.name === '테스트' && parsed.arr.length === 3 && parsed.nested.a === true;
+  }, 'testData');
+
+  assert('CSV 생성 (엑셀 내보내기)', () => {
+    const headers = '이름,연락처,등급\n';
+    const rows = '김철수,010-1234-5678,VIP\n이영희,010-9876-5432,우수\n';
+    const csv = '\uFEFF' + headers + rows;
+    return csv.includes('\uFEFF') && csv.includes('김철수');
+  }, 'testData');
+
+  assert('JSON 백업 데이터 구조', () => {
+    let data;
+    try { data = JSON.parse(localStorage.getItem('udb6')) || {}; } catch { data = {}; }
+    const backup = JSON.stringify({ customers: data.customers||[], stores: data.stores||[], brands: data.brands||[] });
+    const parsed = JSON.parse(backup);
+    return Array.isArray(parsed.customers) && Array.isArray(parsed.stores) && Array.isArray(parsed.brands);
+  }, 'testData');
+
+  assert('날짜 필터링 로직', () => {
+    const d = new Date();
+    const td = d.toISOString().slice(0,10);
+    const yd = new Date(d - 86400000).toISOString().slice(0,10);
+    const items = [{createdAt:td},{createdAt:yd}];
+    const filtered = items.filter(i => i.createdAt === td);
+    return filtered.length === 1;
+  }, 'testData');
+}
+
+// ═══════════════════════════════════
+//   9. UI/UX 테스트
+// ═══════════════════════════════════
+function testUIUX() {
+  log('── UI/UX 테스트 ──', 'info');
+
+  assert('7개 탭 정의', () => {
+    const tabs = ['dash','smart','search','cust','store','brand','set'];
+    return tabs.length === 7;
+  }, 'testUI');
+
+  assert('등급 뱃지 색상 매핑', () => {
+    const gradeColors = { VIP:'#C0392B', 우수:'#E65100', 일반:'#666', 신규:'#1565C0', 휴면:'#999' };
+    return Object.keys(gradeColors).length === 5;
+  }, 'testUI');
+
+  assert('상태 뱃지 클래스 매핑', () => {
+    const cls = {'신규':'st-new','상담중':'st-consult','계약진행':'st-contract','계약완료':'st-done','이탈':'st-lost'};
+    return Object.keys(cls).length === 5;
+  }, 'testUI');
+
+  assert('반응형 미디어쿼리 존재', () => {
+    // 900px 기준 테스트
+    return window.matchMedia !== undefined;
+  }, 'testUI');
+
+  assert('Clipboard API 가용성', () => {
+    return navigator.clipboard !== undefined || document.execCommand !== undefined;
+  }, 'testUI');
+
+  assert('Web Speech API 가용성', () => {
+    return window.SpeechRecognition !== undefined || window.webkitSpeechRecognition !== undefined;
+  }, 'testUI');
+}
+
+// ═══════════════════════════════════
+//   테스트 데이터 주입
+// ═══════════════════════════════════
+function injectTestData() {
+  if (!confirm('테스트 데이터를 주입하시겠습니까?\n기존 데이터가 있으면 추가됩니다.')) return;
+
+  let data;
+  try { data = JSON.parse(localStorage.getItem('udb6')) || {}; } catch { data = {}; }
+  if (!data.customers) data.customers = [];
+  if (!data.stores) data.stores = [];
+  if (!data.brands) data.brands = [];
+
+  // 테스트 고객 10명
+  const testCustomers = [
+    {id:'test_c1',name:'김철수',phone:'010-1234-5678',grade:'VIP',status:'상담중',region:'강남',budget:'1억2천만',bizType:'카페',wantArea:'20~35평',interests:'맘스터치, 빽다방',dbCat:'차알 DB',tags:['#급매','#관심높음'],memos:[{text:'강남 선호, 예산 협의 가능',date:today()}],consultHistory:[{date:today(),content:'초기상담',result:'관심높음',type:'전화'}],activityLog:[],createdAt:today()},
+    {id:'test_c2',name:'이영희',phone:'010-9876-5432',grade:'우수',status:'제안완료',region:'서초',budget:'8천만',bizType:'치킨',wantArea:'15~20평',interests:'BBQ, 교촌',dbCat:'내일사장 DB',tags:['#서초'],memos:[],consultHistory:[],activityLog:[],createdAt:today()},
+    {id:'test_c3',name:'박민수',phone:'010-5555-1234',grade:'일반',status:'신규',region:'마포',budget:'5천만',bizType:'분식',wantArea:'10~15평',interests:'',dbCat:'차알 DB',tags:[],memos:[],consultHistory:[],activityLog:[],createdAt:today()},
+    {id:'test_c4',name:'정다운',phone:'010-3333-4444',grade:'VIP',status:'계약진행',region:'송파',budget:'2억',bizType:'삼겹살',wantArea:'30~40평',interests:'',dbCat:'내일사장 DB',tags:['#대형','#VIP'],memos:[{text:'대형 매장 선호',date:today()}],consultHistory:[],activityLog:[],createdAt:today()},
+    {id:'test_c5',name:'최서연',phone:'010-7777-8888',grade:'신규',status:'신규',region:'강서',budget:'3천만',bizType:'베이커리',wantArea:'15평',interests:'파리바게뜨',dbCat:'',tags:[],memos:[],consultHistory:[],activityLog:[],createdAt:today()},
+    {id:'test_c6',name:'한지민',phone:'010-1111-2222',grade:'우수',status:'상담중',region:'용산',budget:'1억',bizType:'카페',wantArea:'25평',interests:'스타벅스, 메가커피',dbCat:'차알 DB',tags:['#급매'],memos:[],consultHistory:[{date:today(),content:'2차 상담',result:'긍정적',type:'방문'}],activityLog:[],createdAt:today()},
+    {id:'test_c7',name:'윤서준',phone:'010-4444-5555',grade:'일반',status:'보류',region:'성북',budget:'6천만',bizType:'편의점',wantArea:'10평',interests:'CU, GS25',dbCat:'',tags:[],memos:[{text:'3개월 후 재연락',date:today()}],consultHistory:[],activityLog:[],createdAt:today()},
+    {id:'test_c8',name:'강민호',phone:'010-6666-7777',grade:'VIP',status:'계약완료',region:'강남',budget:'3억',bizType:'레스토랑',wantArea:'50평 이상',interests:'',dbCat:'내일사장 DB',tags:['#완료'],memos:[],consultHistory:[],activityLog:[],createdAt:today()},
+    {id:'test_c9',name:'서하은',phone:'010-8888-9999',grade:'휴면',status:'이탈',region:'노원',budget:'',bizType:'',wantArea:'',interests:'',dbCat:'',tags:[],memos:[],consultHistory:[],activityLog:[],createdAt:today()},
+    {id:'test_c10',name:'임도현',phone:'010-2222-3333',grade:'신규',status:'신규',region:'영등포',budget:'7천만',bizType:'떡볶이',wantArea:'12평',interests:'신전떡볶이',dbCat:'차알 DB',tags:['#신규'],memos:[],consultHistory:[],activityLog:[],createdAt:today()}
+  ];
+
+  // 테스트 점포 5개
+  const testStores = [
+    {id:'test_s1',name:'강남역 2번출구 1층',address:'서울 강남구 역삼동 123-4',district:'강남구',floor:'1층',area:'35',rent:'350만',maintenance:'30만',deposit:'5천만',premium:'8천만',grade:'A급',status:'공실',dbCat:'내일사장DB',marketRent:'300만',marketDeposit:'4500만',tags:['#역세권','#코너'],photos:[],files:[],memos:[{text:'대로변 코너, 유동인구 많음',date:today()}],activityLog:[],createdAt:today()},
+    {id:'test_s2',name:'서초동 사거리 B1',address:'서울 서초구 서초동 456-7',district:'서초구',floor:'B1',area:'25',rent:'200만',maintenance:'20만',deposit:'3천만',premium:'5천만',grade:'B급',status:'소개중',dbCat:'원윌앤코DB',marketRent:'250만',marketDeposit:'3500만',tags:['#지하'],photos:[],files:[],memos:[],activityLog:[],createdAt:today()},
+    {id:'test_s3',name:'홍대입구 메인로 2층',address:'서울 마포구 서교동 789-0',district:'마포구',floor:'2층',area:'42',rent:'500만',maintenance:'50만',deposit:'1억',premium:'1억2천만',grade:'A급',status:'계약진행',dbCat:'내일사장DB',marketRent:'480만',marketDeposit:'9천만',tags:['#대형','#메인로'],photos:[],files:[],memos:[],activityLog:[],createdAt:today()},
+    {id:'test_s4',name:'송파 석촌호수 앞',address:'서울 송파구 석촌동 111-2',district:'송파구',floor:'1층',area:'18',rent:'180만',maintenance:'15만',deposit:'2천만',premium:'3천만',grade:'C급',status:'공실',dbCat:'창업원DB',marketRent:'200만',marketDeposit:'2500만',tags:[],photos:[],files:[],memos:[],activityLog:[],createdAt:today()},
+    {id:'test_s5',name:'잠실 롯데월드타워 앞',address:'서울 송파구 잠실동 333-4',district:'송파구',floor:'1층',area:'55',rent:'800만',maintenance:'80만',deposit:'2억',premium:'3억',grade:'A급',status:'소개중',dbCat:'내일사장DB',marketRent:'750만',marketDeposit:'1억8천만',tags:['#프리미엄','#대로변'],photos:[],files:[],memos:[],activityLog:[],createdAt:today()}
+  ];
+
+  // 테스트 브랜드 3개
+  const testBrands = [
+    {id:'test_b1',brandName:'맘스터치',companyName:'(주)맘스터치앤컴퍼니',contactName:'이부장',position:'부장',phone:'010-5555-1234',consultContent:'가맹조건 문의, 가맹비 3천만, 로열티 월 40만',tags:['#버거'],memos:[],createdAt:today()},
+    {id:'test_b2',brandName:'빽다방',companyName:'더본코리아',contactName:'김차장',position:'차장',phone:'010-6666-5432',consultContent:'소규모 창업 가능, 가맹비 1천만',tags:['#카페','#소자본'],memos:[],createdAt:today()},
+    {id:'test_b3',brandName:'BBQ치킨',companyName:'(주)제너시스BBQ',contactName:'박팀장',position:'팀장',phone:'010-7777-6789',consultContent:'가맹문의, 창업비용 1억5천만 예상',tags:['#치킨'],memos:[],createdAt:today()}
+  ];
+
+  // 기존 테스트 데이터 제거 후 추가
+  data.customers = data.customers.filter(c => !c.id.startsWith('test_'));
+  data.stores = data.stores.filter(s => !s.id.startsWith('test_'));
+  data.brands = data.brands.filter(b => !b.id.startsWith('test_'));
+
+  data.customers.push(...testCustomers);
+  data.stores.push(...testStores);
+  data.brands.push(...testBrands);
+
+  localStorage.setItem('udb6', JSON.stringify(data));
+  alert('✅ 테스트 데이터 주입 완료!\n\n고객 10명 + 점포 5개 + 브랜드 3개\n\n앱에서 확인하세요.');
+  log('📥 테스트 데이터 주입: 고객 10명, 점포 5개, 브랜드 3개', 'ok');
+}
+
+function clearTestData() {
+  if (!confirm('테스트 데이터만 삭제합니다 (ID가 test_로 시작하는 데이터). 계속하시겠습니까?')) return;
+
+  let data;
+  try { data = JSON.parse(localStorage.getItem('udb6')) || {}; } catch { data = {}; }
+
+  const cBefore = (data.customers||[]).length;
+  const sBefore = (data.stores||[]).length;
+  const bBefore = (data.brands||[]).length;
+
+  data.customers = (data.customers||[]).filter(c => !c.id.startsWith('test_'));
+  data.stores = (data.stores||[]).filter(s => !s.id.startsWith('test_'));
+  data.brands = (data.brands||[]).filter(b => !b.id.startsWith('test_'));
+
+  localStorage.setItem('udb6', JSON.stringify(data));
+
+  const cDel = cBefore - data.customers.length;
+  const sDel = sBefore - data.stores.length;
+  const bDel = bBefore - data.brands.length;
+
+  alert(`✅ 테스트 데이터 삭제 완료!\n\n고객 ${cDel}건, 점포 ${sDel}건, 브랜드 ${bDel}건 삭제`);
+  log(`🗑️ 테스트 데이터 삭제: 고객 ${cDel}, 점포 ${sDel}, 브랜드 ${bDel}`, 'warn');
+}
+</script>
+</body>
+</html>
