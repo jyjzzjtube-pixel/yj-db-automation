@@ -118,7 +118,7 @@ select.inp{cursor:pointer;-webkit-appearance:none;appearance:none;background:url
 </style>
 </head>
 <body>
-<div class="top"><h1>📋 통합 DB 자동화</h1></div>
+<div class="top" style="display:flex;align-items:center;justify-content:center;position:relative"><h1 style="flex:1;text-align:center">📋 통합 DB 자동화</h1><button onclick="openApiSettings()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:1.5px solid var(--c);color:var(--c);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:3px;transition:all .15s" onmouseover="this.style.background='var(--c)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--c)'"><span>🔗</span> API 연동</button></div>
 <div class="tabs" id="tabs"></div>
 <div class="main" id="main"></div>
 <div id="modal"></div>
@@ -151,9 +151,9 @@ let D={tab:'dash',customers:[],stores:[],brands:[],editId:null,search:'',fGrade:
   sCkMemo:false,sCkPhoto:false,sCkPhone:false,sCkConsult:false,sCkNoPremium:false,sCkToday:false,sCk7d:false,sCk30d:false,sCkDateFrom:'',sCkDateTo:'',
   cfRegion:'',cfBudgetMin:'',cfBudgetMax:'',cfBizType:'',cfAreaMin:'',cfAreaMax:'',cfOpen:false,
   sfDistrict:'',sfRentMin:'',sfRentMax:'',sfDepositMin:'',sfDepositMax:'',sfPremiumMin:'',sfPremiumMax:'',sfAreaMin:'',sfAreaMax:'',sfFloor:'',sfOpen:false,
-  custCats:['차알 DB','내일사장 DB'],storeCats:['내일사장DB','원윌앤코DB','창업원DB','황선응 팀장 DB'],fCustCat:'all',fStoreCat:'all'};
-try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';D.smsHistory=s.smsHistory||[];D.aligoProxy=s.aligoProxy||'direct';}}catch{}
-function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct'}));}catch{}}
+  custCats:['차알 DB','내일사장 DB'],storeCats:['내일사장DB','원윌앤코DB','창업원DB','황선응 팀장 DB'],fCustCat:'all',fStoreCat:'all',geminiKey:'',claudeKey:''};
+try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';D.smsHistory=s.smsHistory||[];D.aligoProxy=s.aligoProxy||'direct';D.geminiKey=s.geminiKey||'';D.claudeKey=s.claudeKey||'';}}catch{}
+function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct',geminiKey:D.geminiKey||'',claudeKey:D.claudeKey||''}));}catch{}}
 function R(){renderTabs();renderMain();save();}
 
 function renderTabs(){$('tabs').innerHTML=TABS.map(t=>{let badge='';if(t.id==='dash'){const todos=getTodos();if(todos.length)badge=`<span style="position:absolute;top:2px;right:2px;background:var(--c);color:#fff;font-size:8px;width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center">${todos.length}</span>`;}return`<div class="tab${D.tab===t.id?' on':''}" style="position:relative" onclick="D.tab='${t.id}';D.editId=null;D.search='';R()"><i>${t.icon}</i>${t.label}${badge}</div>`;}).join('');}
@@ -797,6 +797,15 @@ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([xml],{t
 // ═══ SETTINGS ═══
 function renderSettings(el){el.innerHTML=`<div style="font-size:18px;font-weight:900;margin-bottom:14px">⚙️ 설정</div>
 <div class="kpi"><div class="kpi-card"><div class="kpi-v">${D.customers.length}</div><div class="kpi-l">👥 고객</div></div><div class="kpi-card"><div class="kpi-v">${D.stores.length}</div><div class="kpi-l">🏪 점포</div></div><div class="kpi-card"><div class="kpi-v">${D.brands.length}</div><div class="kpi-l">🏷 브랜드</div></div></div>
+<div class="c" style="border:2px solid rgba(192,57,43,.2)"><div class="c-h" style="color:var(--c);background:rgba(192,57,43,.03)">🔗 API 연동 현황</div><div class="c-b">
+<div style="display:flex;gap:8px;margin-bottom:12px">
+  <div style="flex:1;padding:10px;border-radius:10px;text-align:center;border:1.5px solid ${D.geminiKey?'#A5D6A7':'#eee'};background:${D.geminiKey?'#E8F5E9':'#fafafa'}"><div style="font-size:16px">🔵</div><div style="font-size:10px;font-weight:800;color:${D.geminiKey?'#2E7D32':'#999'}">Gemini AI</div><div style="font-size:9px;color:${D.geminiKey?'#2E7D32':'#ccc'}">${D.geminiKey?'연결됨':'미설정'}</div></div>
+  <div style="flex:1;padding:10px;border-radius:10px;text-align:center;border:1.5px solid ${D.claudeKey?'#A5D6A7':'#eee'};background:${D.claudeKey?'#E8F5E9':'#fafafa'}"><div style="font-size:16px">🟠</div><div style="font-size:10px;font-weight:800;color:${D.claudeKey?'#2E7D32':'#999'}">Claude AI</div><div style="font-size:9px;color:${D.claudeKey?'#2E7D32':'#ccc'}">${D.claudeKey?'연결됨':'미설정'}</div></div>
+  <div style="flex:1;padding:10px;border-radius:10px;text-align:center;border:1.5px solid ${(D.aligoKey&&D.aligoId&&D.aligoSender)?'#A5D6A7':'#eee'};background:${(D.aligoKey&&D.aligoId&&D.aligoSender)?'#E8F5E9':'#fafafa'}"><div style="font-size:16px">📩</div><div style="font-size:10px;font-weight:800;color:${(D.aligoKey&&D.aligoId&&D.aligoSender)?'#2E7D32':'#999'}">Aligo SMS</div><div style="font-size:9px;color:${(D.aligoKey&&D.aligoId&&D.aligoSender)?'#2E7D32':'#ccc'}">${(D.aligoKey&&D.aligoId&&D.aligoSender)?'설정완료':'미완료'}</div></div>
+</div>
+<button class="btn bp bf" onclick="openApiSettings()" style="font-size:13px;padding:12px">🔗 API 연동하기</button>
+<div style="font-size:10px;color:#aaa;margin-top:8px;text-align:center">Gemini/Claude API Key + 알리고 SMS 설정을 한 곳에서 관리</div>
+</div></div>
 <div class="c"><div class="c-h" style="color:var(--c)">💾 데이터</div><div class="c-b">
 <button class="btn bp bf mb8" onclick="exportAll()">📥 전체 백업</button>
 <button class="btn bo bf mb8" onclick="exportCustomers()">📱 고객 DB 엑셀</button>
@@ -1016,6 +1025,174 @@ finally{if(btn){btn.disabled=false;btn.textContent='📩 알리고 발송 ('+(mo
 function exportAll(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands},null,2)],{type:'application/json'}));a.download=`DB백업_${today()}.json`;a.click();}
 function importAll(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);D.customers=d.customers||[];D.stores=d.stores||[];D.brands=d.brands||[];R();alert('✅ 완료!');}catch{alert('오류');}};r.readAsText(f);e.target.value='';}
 function resetAll(){if(!confirm('⚠️ 전체 삭제?'))return;if(!confirm('정말?'))return;D.customers=[];D.stores=[];D.brands=[];D.smartHistory=[];D.editId=null;R();}
+
+// ═══ API 설정 모달 ═══
+function getApiStatusBadge(type){
+  if(type==='gemini'){
+    if(D.geminiKey)return'<span style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;background:#E8F5E9;color:#2E7D32">✅ 연결됨</span>';
+    return'<span style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;background:#F5F5F5;color:#999">⚪ 미설정</span>';
+  }
+  if(type==='claude'){
+    if(D.claudeKey)return'<span style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;background:#E8F5E9;color:#2E7D32">✅ 연결됨</span>';
+    return'<span style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;background:#F5F5F5;color:#999">⚪ 미설정</span>';
+  }
+  if(type==='aligo'){
+    if(D.aligoKey&&D.aligoId&&D.aligoSender)return'<span style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;background:#E8F5E9;color:#2E7D32">✅ 설정완료</span>';
+    return'<span style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;background:#FFF3E0;color:#E65100">⚠️ 미완료</span>';
+  }
+  return'';
+}
+
+function clearGeminiKey(){D.geminiKey='';save();openApiSettings();}
+function clearClaudeKey(){D.claudeKey='';save();openApiSettings();}
+
+function saveGeminiKey(){
+  const v=document.getElementById('apiGeminiKey');
+  if(v){D.geminiKey=v.value.trim();save();openApiSettings();}
+}
+function saveclaudeKey(){
+  const v=document.getElementById('apiClaudeKey');
+  if(v){D.claudeKey=v.value.trim();save();openApiSettings();}
+}
+function saveAligoSettings(){
+  const k=document.getElementById('apiAligoKey');
+  const u=document.getElementById('apiAligoId');
+  const s=document.getElementById('apiAligoSender');
+  const t=document.getElementById('apiAligoTest');
+  const p=document.getElementById('apiAligoProxy');
+  if(k)D.aligoKey=k.value.trim();
+  if(u)D.aligoId=u.value.trim();
+  if(s)D.aligoSender=s.value.trim();
+  if(t)D.aligoTest=t.value;
+  if(p)D.aligoProxy=p.value;
+  save();openApiSettings();
+}
+
+async function testGeminiKey(){
+  const el=document.getElementById('geminiTestResult');
+  if(!D.geminiKey){el.innerHTML='<div style="padding:6px;background:#FFF3E0;border-radius:6px;font-size:10px;color:#E65100">API Key를 먼저 입력하세요</div>';return;}
+  el.innerHTML='<div style="padding:6px;background:#E3F2FD;border-radius:6px;font-size:10px;color:#1565C0">⏳ 테스트 중...</div>';
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+D.geminiKey);
+    const d=await r.json();
+    if(d.models&&d.models.length>0){
+      el.innerHTML='<div style="padding:6px;background:#E8F5E9;border-radius:6px;font-size:10px;color:#2E7D32;font-weight:700">✅ 연결 성공! ('+d.models.length+'개 모델 사용 가능)</div>';
+    }else{
+      el.innerHTML='<div style="padding:6px;background:#FFEBEE;border-radius:6px;font-size:10px;color:#C62828">❌ 실패: '+(d.error?.message||'API Key 확인 필요')+'</div>';
+    }
+  }catch(e){
+    el.innerHTML='<div style="padding:6px;background:#FFEBEE;border-radius:6px;font-size:10px;color:#C62828">❌ 네트워크 오류: '+e.message+'</div>';
+  }
+}
+
+async function testClaudeKey(){
+  const el=document.getElementById('claudeTestResult');
+  if(!D.claudeKey){el.innerHTML='<div style="padding:6px;background:#FFF3E0;border-radius:6px;font-size:10px;color:#E65100">API Key를 먼저 입력하세요</div>';return;}
+  el.innerHTML='<div style="padding:6px;background:#E3F2FD;border-radius:6px;font-size:10px;color:#1565C0">⏳ 테스트 중...</div>';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':D.claudeKey,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:'Hi'}]})});
+    if(r.ok||r.status===200){
+      el.innerHTML='<div style="padding:6px;background:#E8F5E9;border-radius:6px;font-size:10px;color:#2E7D32;font-weight:700">✅ 연결 성공! Claude API 정상 작동</div>';
+    }else{
+      const d=await r.json().catch(()=>({}));
+      el.innerHTML='<div style="padding:6px;background:#FFEBEE;border-radius:6px;font-size:10px;color:#C62828">❌ 실패 ('+r.status+'): '+(d.error?.message||'API Key 확인 필요')+'</div>';
+    }
+  }catch(e){
+    el.innerHTML='<div style="padding:6px;background:#FFF3E0;border-radius:6px;font-size:10px;color:#E65100">⚠️ CORS 오류일 수 있습니다. 브라우저에서 직접 호출은 제한될 수 있습니다.<br>Key가 저장되었으면 AI 분석 시 사용됩니다.</div>';
+  }
+}
+
+async function testAligoConnModal(){
+  if(!D.aligoKey||!D.aligoId){alert('API Key와 사용자 ID를 입력하세요');return;}
+  const el=document.getElementById('aligoModalTestResult');
+  el.innerHTML='<div style="padding:6px;background:#E3F2FD;border-radius:6px;font-size:10px;color:#1565C0">⏳ 연결 테스트 중...</div>';
+  try{
+    const body=new URLSearchParams();body.append('key',D.aligoKey);body.append('user_id',D.aligoId);
+    const d=await aligoFetch('https://apis.aligo.in/remain/',body);
+    if(d.result_code===1){
+      el.innerHTML='<div style="padding:6px;background:#E8F5E9;border-radius:6px;font-size:10px;color:#2E7D32;font-weight:700">✅ 연결 성공! SMS: '+d.SMS_CNT+'건 / LMS: '+(d.LMS_CNT||0)+'건</div>';
+    }else{
+      el.innerHTML='<div style="padding:6px;background:#FFEBEE;border-radius:6px;font-size:10px;color:#C62828">❌ 실패: '+(d.message||'API Key/ID 확인')+'</div>';
+    }
+  }catch(e){
+    el.innerHTML='<div style="padding:6px;background:#FFF3E0;border-radius:6px;font-size:10px;color:#E65100">⚠️ '+e.message+'</div>';
+  }
+}
+
+function openApiSettings(){
+  const maskKey=(k)=>{if(!k)return'';if(k.length<=8)return'*'.repeat(k.length);return k.slice(0,4)+'*'.repeat(k.length-8)+k.slice(-4);};
+  const connCount=(D.geminiKey?1:0)+(D.claudeKey?1:0)+((D.aligoKey&&D.aligoId&&D.aligoSender)?1:0);
+  $('modal').innerHTML=`<div class="modal-overlay" onclick="$('modal').innerHTML=''"><div class="modal-box" style="max-width:520px;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+  <div><div style="font-size:17px;font-weight:900;color:var(--c)">🔗 API 연동 설정</div><div style="font-size:11px;color:var(--sub);margin-top:2px">연동 ${connCount}/3 완료</div></div>
+  <button onclick="$('modal').innerHTML=''" style="background:none;border:none;font-size:18px;cursor:pointer;color:#999">✕</button>
+</div>
+
+<div style="display:flex;gap:6px;margin-bottom:16px">
+  <div style="flex:1;padding:10px;border-radius:10px;text-align:center;border:1.5px solid ${D.geminiKey?'#A5D6A7':'#eee'};background:${D.geminiKey?'#E8F5E9':'#fafafa'}"><div style="font-size:18px">🔵</div><div style="font-size:10px;font-weight:800;margin-top:2px;color:${D.geminiKey?'#2E7D32':'#999'}">Gemini</div><div style="font-size:9px;color:${D.geminiKey?'#2E7D32':'#bbb'};margin-top:1px">${D.geminiKey?'연결됨':'미설정'}</div></div>
+  <div style="flex:1;padding:10px;border-radius:10px;text-align:center;border:1.5px solid ${D.claudeKey?'#A5D6A7':'#eee'};background:${D.claudeKey?'#E8F5E9':'#fafafa'}"><div style="font-size:18px">🟠</div><div style="font-size:10px;font-weight:800;margin-top:2px;color:${D.claudeKey?'#2E7D32':'#999'}">Claude</div><div style="font-size:9px;color:${D.claudeKey?'#2E7D32':'#bbb'};margin-top:1px">${D.claudeKey?'연결됨':'미설정'}</div></div>
+  <div style="flex:1;padding:10px;border-radius:10px;text-align:center;border:1.5px solid ${(D.aligoKey&&D.aligoId&&D.aligoSender)?'#A5D6A7':'#eee'};background:${(D.aligoKey&&D.aligoId&&D.aligoSender)?'#E8F5E9':'#fafafa'}"><div style="font-size:18px">📩</div><div style="font-size:10px;font-weight:800;margin-top:2px;color:${(D.aligoKey&&D.aligoId&&D.aligoSender)?'#2E7D32':'#999'}">Aligo</div><div style="font-size:9px;color:${(D.aligoKey&&D.aligoId&&D.aligoSender)?'#2E7D32':'#bbb'};margin-top:1px">${(D.aligoKey&&D.aligoId&&D.aligoSender)?'설정완료':'미완료'}</div></div>
+</div>
+
+<!-- Gemini AI -->
+<div style="border:1.5px solid #E3F2FD;border-radius:12px;padding:14px;margin-bottom:12px;background:#FAFCFF">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="font-size:13px;font-weight:800;color:#1A73E8">🔵 Gemini AI API</div>
+    ${getApiStatusBadge('gemini')}
+  </div>
+  <div style="font-size:10px;color:#888;margin-bottom:8px;line-height:1.5">Google AI Studio에서 API Key 발급 → <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#1A73E8;font-weight:700">Key 발급하기</a></div>
+  <div style="display:flex;gap:6px;align-items:flex-end">
+    <div style="flex:1"><label style="font-size:9px;font-weight:700;color:#999;display:block;margin-bottom:3px">API Key</label><input class="inp" id="apiGeminiKey" type="password" value="${esc(D.geminiKey||'')}" placeholder="AIzaSy... 형식의 API Key" style="font-size:12px"></div>
+    <button class="btn btn-sm" onclick="saveGeminiKey()" style="background:#1A73E8;color:#fff;min-height:36px;white-space:nowrap">저장</button>
+  </div>
+  <div style="display:flex;gap:6px;margin-top:6px">
+    <button class="btn btn-sm" onclick="testGeminiKey()" style="background:transparent;border:1.5px solid #1A73E8;color:#1A73E8;flex:1">🔍 연결 테스트</button>
+    ${D.geminiKey?'<button class="btn btn-sm" onclick="clearGeminiKey()" style="background:transparent;border:1.5px solid #E53935;color:#E53935">삭제</button>':''}
+  </div>
+  <div id="geminiTestResult" style="margin-top:6px"></div>
+</div>
+
+<!-- Claude AI -->
+<div style="border:1.5px solid #FFF3E0;border-radius:12px;padding:14px;margin-bottom:12px;background:#FFFCF8">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="font-size:13px;font-weight:800;color:#D97706">🟠 Claude AI API</div>
+    ${getApiStatusBadge('claude')}
+  </div>
+  <div style="font-size:10px;color:#888;margin-bottom:8px;line-height:1.5">Anthropic Console에서 API Key 발급 → <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#D97706;font-weight:700">Key 발급하기</a></div>
+  <div style="display:flex;gap:6px;align-items:flex-end">
+    <div style="flex:1"><label style="font-size:9px;font-weight:700;color:#999;display:block;margin-bottom:3px">API Key</label><input class="inp" id="apiClaudeKey" type="password" value="${esc(D.claudeKey||'')}" placeholder="sk-ant-... 형식의 API Key" style="font-size:12px"></div>
+    <button class="btn btn-sm" onclick="saveclaudeKey()" style="background:#D97706;color:#fff;min-height:36px;white-space:nowrap">저장</button>
+  </div>
+  <div style="display:flex;gap:6px;margin-top:6px">
+    <button class="btn btn-sm" onclick="testClaudeKey()" style="background:transparent;border:1.5px solid #D97706;color:#D97706;flex:1">🔍 연결 테스트</button>
+    ${D.claudeKey?'<button class="btn btn-sm" onclick="clearClaudeKey()" style="background:transparent;border:1.5px solid #E53935;color:#E53935">삭제</button>':''}
+  </div>
+  <div id="claudeTestResult" style="margin-top:6px"></div>
+</div>
+
+<!-- Aligo SMS -->
+<div style="border:1.5px solid #FFCC80;border-radius:12px;padding:14px;margin-bottom:12px;background:#FFFCF5">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="font-size:13px;font-weight:800;color:#E65100">📩 Aligo SMS API</div>
+    ${getApiStatusBadge('aligo')}
+  </div>
+  <div style="font-size:10px;color:#888;margin-bottom:8px;line-height:1.5">알리고 가입 → <a href="https://smartsms.aligo.in/admin/api/auth.html" target="_blank" style="color:#E65100;font-weight:700">API Key 발급</a> → 건당 SMS 8.4원 / LMS 25원</div>
+  <div class="row r2" style="margin-bottom:8px"><div><label style="font-size:9px;font-weight:700;color:#999;display:block;margin-bottom:3px">API Key</label><input class="inp" id="apiAligoKey" value="${esc(D.aligoKey||'')}" placeholder="알리고 API Key" style="font-size:12px"></div><div><label style="font-size:9px;font-weight:700;color:#999;display:block;margin-bottom:3px">사용자 ID</label><input class="inp" id="apiAligoId" value="${esc(D.aligoId||'')}" placeholder="알리고 로그인 ID" style="font-size:12px"></div></div>
+  <div class="row r2" style="margin-bottom:8px"><div><label style="font-size:9px;font-weight:700;color:#999;display:block;margin-bottom:3px">발신번호</label><input class="inp" id="apiAligoSender" value="${esc(D.aligoSender||'')}" placeholder="01012345678" style="font-size:12px"></div><div><label style="font-size:9px;font-weight:700;color:#999;display:block;margin-bottom:3px">테스트모드</label><select class="inp" id="apiAligoTest" style="font-size:12px"><option value="Y"${(D.aligoTest||'Y')==='Y'?' selected':''}>Y (무료 테스트)</option><option value="N"${D.aligoTest==='N'?' selected':''}>N (실제 발송)</option></select></div></div>
+  <div style="margin-bottom:8px"><label style="font-size:9px;font-weight:700;color:#999;display:block;margin-bottom:3px">CORS 프록시</label><select class="inp" id="apiAligoProxy" style="font-size:12px"><option value="direct"${(D.aligoProxy||'direct')==='direct'?' selected':''}>직접 연결</option><option value="allorigins"${D.aligoProxy==='allorigins'?' selected':''}>AllOrigins 프록시</option><option value="corsproxy"${D.aligoProxy==='corsproxy'?' selected':''}>CORS Proxy</option></select></div>
+  <div style="display:flex;gap:6px">
+    <button class="btn btn-sm" onclick="saveAligoSettings()" style="background:#E65100;color:#fff;flex:1;min-height:36px">💾 저장</button>
+    <button class="btn btn-sm" onclick="testAligoConnModal()" style="background:transparent;border:1.5px solid #1565C0;color:#1565C0;flex:1;min-height:36px">🔍 연결 테스트</button>
+  </div>
+  <div id="aligoModalTestResult" style="margin-top:6px"></div>
+</div>
+
+<div style="font-size:10px;color:#aaa;line-height:1.6;padding:8px 0;border-top:1px solid #eee">
+  🔒 모든 API Key는 브라우저 localStorage에만 저장됩니다.<br>
+  서버 전송 없이 안전하게 로컬에서만 사용됩니다.
+</div>
+</div></div>`;
+}
 
 R();
 </script>
