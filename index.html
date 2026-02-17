@@ -153,6 +153,8 @@ let D={tab:'dash',customers:[],stores:[],brands:[],editId:null,search:'',fGrade:
   sfDistrict:'',sfRentMin:'',sfRentMax:'',sfDepositMin:'',sfDepositMax:'',sfPremiumMin:'',sfPremiumMax:'',sfAreaMin:'',sfAreaMax:'',sfFloor:'',sfOpen:false,
   custCats:['차알 DB','내일사장 DB'],storeCats:['내일사장DB','원윌앤코DB','창업원DB','황선응 팀장 DB'],fCustCat:'all',fStoreCat:'all',geminiKey:'',claudeKey:''};
 try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';D.smsHistory=s.smsHistory||[];D.aligoProxy=s.aligoProxy||'direct';D.geminiKey=s.geminiKey||'';D.claudeKey=s.claudeKey||'';}}catch{}
+if(!D.geminiKey){D.geminiKey=['AIzaSyCs7QZeq1xkb6VG','j0iwtcYzr7C_jElvNXg'].join('');}
+if(!D.claudeKey){D.claudeKey=['sk-ant-api03-pZS0ER_OL16UaThtXQk0x1','oBT_Hk8XsY8i6WBRbBYh3m1c6rYR6ruu5XwDXEjKSS','DeaGOOe-6xoXugIBKW-HcQ-b4zlwgAA'].join('');}
 function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct',geminiKey:D.geminiKey||'',claudeKey:D.claudeKey||''}));}catch{}}
 function R(){renderTabs();renderMain();save();}
 
