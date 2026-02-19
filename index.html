@@ -115,6 +115,40 @@ select.inp{cursor:pointer;-webkit-appearance:none;appearance:none;background:url
 .st-new{background:#E3F2FD;color:#1565C0}.st-consult{background:#FFF3E0;color:#E65100}.st-contract{background:#FCE4EC;color:#C62828}.st-done{background:#E8F5E9;color:#2E7D32}.st-lost{background:#F5F5F5;color:#999}
 .st-vacant{background:#FFEBEE;color:#C62828}.st-intro{background:#FFF3E0;color:#E65100}.st-contracting{background:#E3F2FD;color:#1565C0}.st-completed{background:#E8F5E9;color:#2E7D32}
 @media(max-width:400px){.r2{grid-template-columns:1fr}.r3{grid-template-columns:1fr 1fr}.r4{grid-template-columns:1fr 1fr}.kpi{grid-template-columns:repeat(2,1fr)}.kpi4{grid-template-columns:repeat(2,1fr)}}
+/* File Cloud */
+.fc-drop{border:2.5px dashed #C0392B;border-radius:14px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(192,57,43,.02)}
+.fc-drop.over{background:rgba(192,57,43,.08);border-color:#E74C3C;transform:scale(1.01)}
+.fc-drop-icon{font-size:40px;margin-bottom:8px}
+.fc-drop-text{font-size:13px;font-weight:700;color:#999}
+.fc-drop-sub{font-size:10px;color:#bbb;margin-top:4px}
+.fc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.fc-item{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;cursor:pointer;transition:all .15s;position:relative}
+.fc-item:hover{border-color:var(--c);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.fc-item.folder{border-left:3px solid #FFC107}
+.fc-icon{font-size:28px;text-align:center;margin-bottom:6px}
+.fc-name{font-size:11px;font-weight:700;text-align:center;word-break:break-all;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fc-meta{font-size:9px;color:#999;text-align:center;margin-top:3px}
+.fc-tag{display:inline-block;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:#E3F2FD;color:#1565C0;margin-right:2px;margin-top:2px}
+.fc-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
+.fc-list-item:hover{background:#fafafa}
+.fc-list-icon{font-size:24px;flex-shrink:0}
+.fc-list-body{flex:1;min-width:0}
+.fc-list-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-list-info{font-size:10px;color:#999;margin-top:1px}
+.fc-actions{display:flex;gap:4px}
+.fc-breadcrumb{display:flex;gap:4px;align-items:center;font-size:11px;margin-bottom:10px;flex-wrap:wrap}
+.fc-breadcrumb span{color:var(--c);cursor:pointer;font-weight:700}
+.fc-breadcrumb span:last-child{color:#333;cursor:default}
+.fc-toolbar{display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.fc-view-btn{width:32px;height:32px;border-radius:8px;border:1.5px solid #ddd;background:var(--card);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.fc-view-btn.on{border-color:var(--c);color:var(--c);background:rgba(192,57,43,.05)}
+.fc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.fc-stat{text-align:center;padding:10px 6px;border-radius:10px;background:var(--card);border:1px solid var(--bd)}
+.fc-stat-v{font-size:18px;font-weight:900;color:var(--c)}
+.fc-stat-l{font-size:9px;font-weight:700;color:var(--sub);margin-top:2px}
+.fc-detail{padding:16px}
+.fc-preview{max-width:100%;max-height:300px;border-radius:10px;object-fit:contain;margin-bottom:10px;background:#f5f5f5}
+@media(max-width:400px){.fc-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -137,7 +171,7 @@ const m2=s.match(/(\d+)\s*천만/);if(m2)return parseInt(m2[1])*1e7;
 const m3=s.match(/(\d+)\s*만/);if(m3)return parseInt(m3[1])*1e4;
 return parseInt(s)||0;};
 
-const TABS=[{id:'dash',icon:'📊',label:'대시보드'},{id:'smart',icon:'📝',label:'통합입력'},{id:'search',icon:'🔍',label:'검색'},{id:'cust',icon:'👥',label:'고객'},{id:'store',icon:'🏪',label:'점포'},{id:'brand',icon:'🏷',label:'브랜드'},{id:'set',icon:'⚙️',label:'설정'}];
+const TABS=[{id:'dash',icon:'📊',label:'대시보드'},{id:'smart',icon:'📝',label:'통합입력'},{id:'files',icon:'☁️',label:'파일'},{id:'search',icon:'🔍',label:'검색'},{id:'cust',icon:'👥',label:'고객'},{id:'store',icon:'🏪',label:'점포'},{id:'brand',icon:'🏷',label:'브랜드'},{id:'set',icon:'⚙️',label:'설정'}];
 const GRADES=['VIP','우수','일반','신규','휴면'];
 const SGRADES=['A급','B급','C급','미정'];
 const CTYPES=['전화','방문','카카오톡','문자','이메일','기타'];
@@ -146,16 +180,17 @@ const SSTATUS=['공실','소개중','계약진행','계약완료'];
 const PHONE_RE=/\d{2,3}-\d{3,4}-\d{4}/;
 const ST_CLS={'신규':'st-new','상담중':'st-consult','계약진행':'st-contract','계약완료':'st-done','이탈':'st-lost','공실':'st-vacant','소개중':'st-intro','계약진행':'st-contracting','계약완료':'st-completed'};
 
-let D={tab:'dash',customers:[],stores:[],brands:[],editId:null,search:'',fGrade:'all',fSGrade:'all',fCStatus:'all',fSStatus:'all',smartText:'',smartHistory:[],compareIds:[],
+let D={tab:'dash',customers:[],stores:[],brands:[],files:[],editId:null,search:'',fGrade:'all',fSGrade:'all',fCStatus:'all',fSStatus:'all',smartText:'',smartHistory:[],compareIds:[],
+  fileSearch:'',fileCat:'all',fileSort:'newest',fileView:'grid',fileCurFolder:null,
   sq:'',sScope:'all',sField:'all',sSort:'newest',sRentMin:'',sRentMax:'',sDepositMin:'',sDepositMax:'',sPremiumMin:'',sPremiumMax:'',sAreaMin:'',sAreaMax:'',
   sCkMemo:false,sCkPhoto:false,sCkPhone:false,sCkConsult:false,sCkNoPremium:false,sCkToday:false,sCk7d:false,sCk30d:false,sCkDateFrom:'',sCkDateTo:'',
   cfRegion:'',cfBudgetMin:'',cfBudgetMax:'',cfBizType:'',cfAreaMin:'',cfAreaMax:'',cfOpen:false,
   sfDistrict:'',sfRentMin:'',sfRentMax:'',sfDepositMin:'',sfDepositMax:'',sfPremiumMin:'',sfPremiumMax:'',sfAreaMin:'',sfAreaMax:'',sfFloor:'',sfOpen:false,
   custCats:['차알 DB','내일사장 DB'],storeCats:['내일사장DB','원윌앤코DB','창업원DB','황선응 팀장 DB'],fCustCat:'all',fStoreCat:'all',geminiKey:'',claudeKey:''};
-try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';D.smsHistory=s.smsHistory||[];D.aligoProxy=s.aligoProxy||'direct';D.geminiKey=s.geminiKey||'';D.claudeKey=s.claudeKey||'';}}catch{}
+try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.files=s.files||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';D.smsHistory=s.smsHistory||[];D.aligoProxy=s.aligoProxy||'direct';D.geminiKey=s.geminiKey||'';D.claudeKey=s.claudeKey||'';}}catch{}
 if(!D.geminiKey){D.geminiKey=['AIzaSyCs7QZeq1xkb6VG','j0iwtcYzr7C_jElvNXg'].join('');}
 if(!D.claudeKey){D.claudeKey=['sk-ant-api03-pZS0ER_OL16UaThtXQk0x1','oBT_Hk8XsY8i6WBRbBYh3m1c6rYR6ruu5XwDXEjKSS','DeaGOOe-6xoXugIBKW-HcQ-b4zlwgAA'].join('');}
-function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct',geminiKey:D.geminiKey||'',claudeKey:D.claudeKey||''}));}catch{}}
+function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,files:D.files,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct',geminiKey:D.geminiKey||'',claudeKey:D.claudeKey||''}));}catch{}}
 function R(){renderTabs();renderMain();save();}
 
 function renderTabs(){$('tabs').innerHTML=TABS.map(t=>{let badge='';if(t.id==='dash'){const todos=getTodos();if(todos.length)badge=`<span style="position:absolute;top:2px;right:2px;background:var(--c);color:#fff;font-size:8px;width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center">${todos.length}</span>`;}return`<div class="tab${D.tab===t.id?' on':''}" style="position:relative" onclick="D.tab='${t.id}';D.editId=null;D.search='';R()"><i>${t.icon}</i>${t.label}${badge}</div>`;}).join('');}
@@ -163,6 +198,7 @@ function renderTabs(){$('tabs').innerHTML=TABS.map(t=>{let badge='';if(t.id==='d
 function renderMain(){const m=$('main');
   if(D.tab==='dash')renderDash(m);
   else if(D.tab==='smart')renderSmart(m);
+  else if(D.tab==='files')renderFileCloud(m);
   else if(D.tab==='search')renderSearch(m);
   else if(D.tab==='cust')D.editId?renderCustEdit(m):renderCustList(m);
   else if(D.tab==='store')D.editId?renderStoreEdit(m):renderStoreList(m);
@@ -1024,9 +1060,9 @@ else{addSmsHistory(sel.length,msg,mode?'test':'real',false);alert('❌ 발송 �
 }catch(e){addSmsHistory(sel.length,msg,mode?'test':'real',false);alert('❌ 네트워크 오류\n\n'+e.message+'\n\n💡 설정탭에서 CORS 프록시를 변경해보세요\n(AllOrigins 또는 CORS Proxy)');}
 finally{if(btn){btn.disabled=false;btn.textContent='📩 알리고 발송 ('+(mode?'테스트':'실발송')+')';}}}
 
-function exportAll(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands},null,2)],{type:'application/json'}));a.download=`DB백업_${today()}.json`;a.click();}
-function importAll(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);D.customers=d.customers||[];D.stores=d.stores||[];D.brands=d.brands||[];R();alert('✅ 완료!');}catch{alert('오류');}};r.readAsText(f);e.target.value='';}
-function resetAll(){if(!confirm('⚠️ 전체 삭제?'))return;if(!confirm('정말?'))return;D.customers=[];D.stores=[];D.brands=[];D.smartHistory=[];D.editId=null;R();}
+function exportAll(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,files:D.files.map(f=>({...f,data:f.data?'[DATA_OMITTED]':undefined}))},null,2)],{type:'application/json'}));a.download=`DB백업_${today()}.json`;a.click();}
+function importAll(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);D.customers=d.customers||[];D.stores=d.stores||[];D.brands=d.brands||[];if(d.files)D.files=d.files;R();alert('✅ 완료!');}catch{alert('오류');}};r.readAsText(f);e.target.value='';}
+function resetAll(){if(!confirm('⚠️ 전체 삭제?'))return;if(!confirm('정말?'))return;D.customers=[];D.stores=[];D.brands=[];D.files=[];D.smartHistory=[];D.editId=null;R();}
 
 // ═══ API 설정 모달 ═══
 function getApiStatusBadge(type){
@@ -1194,6 +1230,277 @@ function openApiSettings(){
   서버 전송 없이 안전하게 로컬에서만 사용됩니다.
 </div>
 </div></div>`;
+}
+
+// ═══ FILE CLOUD ═══
+const FILE_CATS=['계약서','제안서','인테리어','세무','마케팅','브랜드','기타'];
+const FILE_ICONS={'pdf':'📕','doc':'📘','docx':'📘','xls':'📗','xlsx':'📗','ppt':'📙','pptx':'📙','hwp':'📓','hwpx':'📓','txt':'📄','zip':'📦','rar':'📦','7z':'📦','jpg':'🖼','jpeg':'🖼','png':'🖼','gif':'🖼','webp':'🖼','svg':'🖼','mp4':'🎬','mov':'🎬','avi':'🎬','mp3':'🎵','wav':'🎵','folder':'📁'};
+function fileIcon(name){if(!name)return'📄';const ext=name.split('.').pop().toLowerCase();return FILE_ICONS[ext]||'📄';}
+function fileSize(bytes){if(!bytes)return'-';if(bytes<1024)return bytes+'B';if(bytes<1048576)return(bytes/1024).toFixed(1)+'KB';return(bytes/1048576).toFixed(1)+'MB';}
+function isImage(name){return/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(name);}
+function getFilesInFolder(folderId){return D.files.filter(f=>f.folder===(folderId||null));}
+function getFolderPath(folderId){const path=[]; let cur=folderId;
+  while(cur){const f=D.files.find(x=>x.id===cur&&x.isFolder);if(!f)break;path.unshift(f);cur=f.folder||null;}
+  return path;}
+function getTotalSize(){return D.files.reduce((s,f)=>s+(f.size||0),0);}
+function countByType(type){return D.files.filter(f=>!f.isFolder&&f.cat===type).length;}
+
+function renderFileCloud(el){
+  const curFolder=D.fileCurFolder;
+  const items=getFilesInFolder(curFolder);
+  const path=getFolderPath(curFolder);
+  const q=(D.fileSearch||'').toLowerCase();
+  const cat=D.fileCat||'all';
+
+  let filtered=items;
+  if(q)filtered=filtered.filter(f=>(f.name||'').toLowerCase().includes(q)||(f.desc||'').toLowerCase().includes(q)||(f.brandTag||'').toLowerCase().includes(q));
+  if(cat!=='all')filtered=filtered.filter(f=>f.cat===cat||f.isFolder);
+
+  const folders=filtered.filter(f=>f.isFolder);
+  const files=filtered.filter(f=>!f.isFolder);
+  if(D.fileSort==='newest')files.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  else if(D.fileSort==='oldest')files.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+  else if(D.fileSort==='name')files.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  else if(D.fileSort==='size')files.sort((a,b)=>(b.size||0)-(a.size||0));
+  const sorted=[...folders,...files];
+
+  const totalFiles=D.files.filter(f=>!f.isFolder).length;
+  const totalFolders=D.files.filter(f=>f.isFolder).length;
+  const totalSz=getTotalSize();
+
+  el.innerHTML=`
+<div class="fc-stats">
+  <div class="fc-stat"><div class="fc-stat-v">${totalFiles}</div><div class="fc-stat-l">전체 파일</div></div>
+  <div class="fc-stat"><div class="fc-stat-v">${totalFolders}</div><div class="fc-stat-l">폴더</div></div>
+  <div class="fc-stat"><div class="fc-stat-v">${fileSize(totalSz)}</div><div class="fc-stat-l">총 용량</div></div>
+</div>
+
+<div class="fc-drop" id="fcDrop" onclick="document.getElementById('fcFileInp').click()">
+  <div class="fc-drop-icon">📂</div>
+  <div class="fc-drop-text">파일을 드래그하거나 클릭하여 업로드</div>
+  <div class="fc-drop-sub">PDF, 워드, 한글, 엑셀, 이미지, 영상 등 모든 파일 지원</div>
+  <input type="file" id="fcFileInp" multiple style="display:none" onchange="handleFileUpload(this.files)">
+</div>
+
+<div class="fc-toolbar mt8">
+  <input class="inp" placeholder="🔍 파일/폴더 검색..." value="${esc(D.fileSearch||'')}" oninput="D.fileSearch=this.value;renderFileCloud($('main'))" style="flex:1;font-size:12px;min-width:0">
+  <button class="btn btn-sm bp" onclick="createFolder()" style="white-space:nowrap">📁 새 폴더</button>
+  <button class="fc-view-btn ${D.fileView==='grid'?'on':''}" onclick="D.fileView='grid';renderFileCloud($('main'))">⊞</button>
+  <button class="fc-view-btn ${D.fileView==='list'?'on':''}" onclick="D.fileView='list';renderFileCloud($('main'))">☰</button>
+</div>
+
+<div class="chips mb8">
+  <div class="chip ${cat==='all'?'on':''}" onclick="D.fileCat='all';renderFileCloud($('main'))">전체</div>
+  ${FILE_CATS.map(c=>`<div class="chip ${cat===c?'on':''}" onclick="D.fileCat='${c}';renderFileCloud($('main'))">${c} <span style="font-size:8px;opacity:.6">${countByType(c)}</span></div>`).join('')}
+</div>
+
+${curFolder?`<div class="fc-breadcrumb">
+  <span onclick="D.fileCurFolder=null;renderFileCloud($('main'))">🏠 홈</span>
+  ${path.map((p,i)=>`<span style="color:#999;cursor:default">/</span><span onclick="D.fileCurFolder='${p.id}';renderFileCloud($('main'))">${esc(p.name)}</span>`).join('')}
+</div>`:''}
+
+<div class="fc-toolbar" style="justify-content:space-between">
+  <div style="font-size:11px;color:#999;font-weight:700">${curFolder?esc((D.files.find(f=>f.id===curFolder)||{}).name||'')+'의 파일':''} ${sorted.length}개</div>
+  <select class="inp" style="width:auto;font-size:10px;padding:5px 24px 5px 8px" onchange="D.fileSort=this.value;renderFileCloud($('main'))">
+    <option value="newest"${D.fileSort==='newest'?' selected':''}>최신순</option>
+    <option value="oldest"${D.fileSort==='oldest'?' selected':''}>오래된순</option>
+    <option value="name"${D.fileSort==='name'?' selected':''}>이름순</option>
+    <option value="size"${D.fileSort==='size'?' selected':''}>크기순</option>
+  </select>
+</div>
+
+${sorted.length===0?'<div class="empty">📭 파일이 없습니다</div>':
+  D.fileView==='grid'?
+  `<div class="fc-grid">${sorted.map(f=>f.isFolder?
+    `<div class="fc-item folder" onclick="D.fileCurFolder='${f.id}';renderFileCloud($('main'))">
+      <div style="position:absolute;top:6px;right:6px"><button class="btn btn-sm" onclick="event.stopPropagation();fileMenu('${f.id}')" style="background:none;border:none;font-size:14px;cursor:pointer;padding:2px">⋮</button></div>
+      <div class="fc-icon">📁</div>
+      <div class="fc-name">${esc(f.name)}</div>
+      <div class="fc-meta">${getFilesInFolder(f.id).length}개 항목</div>
+    </div>`:
+    `<div class="fc-item" onclick="viewFile('${f.id}')">
+      <div style="position:absolute;top:6px;right:6px"><button class="btn btn-sm" onclick="event.stopPropagation();fileMenu('${f.id}')" style="background:none;border:none;font-size:14px;cursor:pointer;padding:2px">⋮</button></div>
+      ${isImage(f.name)&&f.data?`<img src="${f.data}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:4px">`:`<div class="fc-icon">${fileIcon(f.name)}</div>`}
+      <div class="fc-name">${esc(f.name)}</div>
+      <div class="fc-meta">${fileSize(f.size)} · ${(f.createdAt||'').slice(0,10)}</div>
+      ${f.brandTag?`<div style="text-align:center"><span class="fc-tag">${esc(f.brandTag)}</span></div>`:''}
+      ${f.cat?`<div style="text-align:center"><span class="fc-tag" style="background:#FFF3E0;color:#E65100">${esc(f.cat)}</span></div>`:''}
+    </div>`
+  ).join('')}</div>`:
+  `<div class="c">${sorted.map(f=>f.isFolder?
+    `<div class="fc-list-item" onclick="D.fileCurFolder='${f.id}';renderFileCloud($('main'))">
+      <div class="fc-list-icon">📁</div>
+      <div class="fc-list-body"><div class="fc-list-name">${esc(f.name)}</div><div class="fc-list-info">${getFilesInFolder(f.id).length}개 항목</div></div>
+      <button class="btn btn-sm" onclick="event.stopPropagation();fileMenu('${f.id}')" style="background:none;border:none;font-size:16px;cursor:pointer">⋮</button>
+    </div>`:
+    `<div class="fc-list-item" onclick="viewFile('${f.id}')">
+      <div class="fc-list-icon">${fileIcon(f.name)}</div>
+      <div class="fc-list-body">
+        <div class="fc-list-name">${esc(f.name)}</div>
+        <div class="fc-list-info">${fileSize(f.size)} · ${(f.createdAt||'').slice(0,10)}${f.brandTag?' · '+esc(f.brandTag):''}${f.cat?' · '+esc(f.cat):''}</div>
+        ${f.desc?`<div style="font-size:10px;color:#888;margin-top:2px">${esc(f.desc).slice(0,50)}</div>`:''}
+      </div>
+      <button class="btn btn-sm" onclick="event.stopPropagation();fileMenu('${f.id}')" style="background:none;border:none;font-size:16px;cursor:pointer">⋮</button>
+    </div>`
+  ).join('')}</div>`
+}`;
+
+  // Drag & drop
+  const drop=document.getElementById('fcDrop');
+  if(drop){
+    drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
+    drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+    drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');handleFileUpload(e.dataTransfer.files);});
+  }
+}
+
+function handleFileUpload(fileList){
+  if(!fileList||!fileList.length)return;
+  let processed=0;const total=fileList.length;
+  Array.from(fileList).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      D.files.push({
+        id:uid(),name:f.name,size:f.size,type:f.type,
+        data:e.target.result,
+        folder:D.fileCurFolder||null,
+        brandTag:'',cat:'기타',desc:'',tags:[],
+        isFolder:false,createdAt:now()
+      });
+      processed++;
+      if(processed===total){save();renderFileCloud($('main'));}
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function createFolder(){
+  const name=prompt('폴더 이름:');
+  if(!name||!name.trim())return;
+  D.files.push({id:uid(),name:name.trim(),isFolder:true,folder:D.fileCurFolder||null,createdAt:now()});
+  save();renderFileCloud($('main'));
+}
+
+function viewFile(fid){
+  const f=D.files.find(x=>x.id===fid);
+  if(!f)return;
+  const m=$('modal');
+  m.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)$('modal').innerHTML=''">
+<div class="modal-box" style="max-width:550px">
+  <div class="fb mb10">
+    <div style="font-size:14px;font-weight:800">${fileIcon(f.name)} ${esc(f.name)}</div>
+    <button onclick="$('modal').innerHTML=''" style="background:none;border:none;font-size:18px;cursor:pointer;color:#999">✕</button>
+  </div>
+
+  ${isImage(f.name)&&f.data?`<img src="${f.data}" class="fc-preview">`:''}
+
+  <div class="row r2 mb10">
+    <div><span class="lbl">크기</span><div style="font-size:12px;font-weight:600">${fileSize(f.size)}</div></div>
+    <div><span class="lbl">업로드일</span><div style="font-size:12px;font-weight:600">${f.createdAt||'-'}</div></div>
+  </div>
+
+  <div class="mb10">
+    <span class="lbl">브랜드 태그</span>
+    <input class="inp" id="fcBrand" value="${esc(f.brandTag||'')}" placeholder="예: 맘스터치, 빽다방" style="font-size:12px">
+  </div>
+
+  <div class="mb10">
+    <span class="lbl">분류</span>
+    <select class="inp" id="fcCat" style="font-size:12px">
+      ${FILE_CATS.map(c=>`<option value="${c}"${f.cat===c?' selected':''}>${c}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="mb10">
+    <span class="lbl">설명</span>
+    <textarea class="inp ta" id="fcDesc" placeholder="파일에 대한 메모..." style="font-size:12px;min-height:60px">${esc(f.desc||'')}</textarea>
+  </div>
+
+  <div class="mb10">
+    <span class="lbl">폴더 이동</span>
+    <select class="inp" id="fcMoveFolder" style="font-size:12px">
+      <option value=""${!f.folder?' selected':''}>🏠 홈 (최상위)</option>
+      ${D.files.filter(x=>x.isFolder&&x.id!==fid).map(x=>`<option value="${x.id}"${f.folder===x.id?' selected':''}>${esc(x.name)}</option>`).join('')}
+    </select>
+  </div>
+
+  <div style="display:flex;gap:6px;margin-top:12px">
+    <button class="btn bp bf" onclick="saveFileMeta('${f.id}')">💾 저장</button>
+  </div>
+  <div style="display:flex;gap:6px;margin-top:6px">
+    ${f.data?`<button class="btn bo" style="flex:1" onclick="downloadFile('${f.id}')">⬇️ 다운로드</button>`:''}
+    <button class="btn bd" style="flex:1" onclick="deleteFile('${f.id}')">🗑 삭제</button>
+  </div>
+</div></div>`;
+}
+
+function saveFileMeta(fid){
+  const f=D.files.find(x=>x.id===fid);if(!f)return;
+  const brand=document.getElementById('fcBrand');
+  const cat=document.getElementById('fcCat');
+  const desc=document.getElementById('fcDesc');
+  const folder=document.getElementById('fcMoveFolder');
+  if(brand)f.brandTag=brand.value.trim();
+  if(cat)f.cat=cat.value;
+  if(desc)f.desc=desc.value.trim();
+  if(folder)f.folder=folder.value||null;
+  save();$('modal').innerHTML='';renderFileCloud($('main'));
+}
+
+function downloadFile(fid){
+  const f=D.files.find(x=>x.id===fid);if(!f||!f.data)return;
+  const a=document.createElement('a');a.href=f.data;a.download=f.name;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+function deleteFile(fid){
+  const f=D.files.find(x=>x.id===fid);if(!f)return;
+  const label=f.isFolder?'폴더':'파일';
+  if(!confirm(`${label} "${f.name}" 삭제?`))return;
+  if(f.isFolder){
+    const children=D.files.filter(x=>x.folder===fid);
+    if(children.length&&!confirm(`폴더 안의 ${children.length}개 항목도 함께 삭제됩니다.`))return;
+    const removeIds=new Set([fid]);
+    function collectChildren(pid){D.files.filter(x=>x.folder===pid).forEach(x=>{removeIds.add(x.id);if(x.isFolder)collectChildren(x.id);});}
+    collectChildren(fid);
+    D.files=D.files.filter(x=>!removeIds.has(x.id));
+  }else{
+    D.files=D.files.filter(x=>x.id!==fid);
+  }
+  save();$('modal').innerHTML='';
+  if(D.fileCurFolder===fid)D.fileCurFolder=null;
+  renderFileCloud($('main'));
+}
+
+function fileMenu(fid){
+  const f=D.files.find(x=>x.id===fid);if(!f)return;
+  const m=$('modal');
+  m.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)$('modal').innerHTML=''">
+<div class="modal-box" style="max-width:320px">
+  <div class="fb mb10">
+    <div style="font-size:13px;font-weight:800">${f.isFolder?'📁':'📄'} ${esc(f.name)}</div>
+    <button onclick="$('modal').innerHTML=''" style="background:none;border:none;font-size:18px;cursor:pointer;color:#999">✕</button>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    ${f.isFolder?`
+      <button class="btn bo bf" onclick="$('modal').innerHTML='';D.fileCurFolder='${f.id}';renderFileCloud($('main'))">📂 폴더 열기</button>
+      <button class="btn bo bf" onclick="renameFile('${f.id}')">✏️ 이름 변경</button>
+    `:`
+      <button class="btn bo bf" onclick="$('modal').innerHTML='';viewFile('${f.id}')">📋 상세보기</button>
+      ${f.data?`<button class="btn bo bf" onclick="$('modal').innerHTML='';downloadFile('${f.id}')">⬇️ 다운로드</button>`:''}
+      <button class="btn bo bf" onclick="renameFile('${f.id}')">✏️ 이름 변경</button>
+    `}
+    <button class="btn bd bf" onclick="$('modal').innerHTML='';deleteFile('${f.id}')">🗑 삭제</button>
+  </div>
+</div></div>`;
+}
+
+function renameFile(fid){
+  const f=D.files.find(x=>x.id===fid);if(!f)return;
+  const name=prompt('새 이름:',f.name);
+  if(!name||!name.trim()||name.trim()===f.name)return;
+  f.name=name.trim();
+  save();$('modal').innerHTML='';renderFileCloud($('main'));
 }
 
 R();
