@@ -106,6 +106,24 @@ select.inp{cursor:pointer;-webkit-appearance:none;appearance:none;background:url
 .voice-btn{background:#4CAF50;color:#fff;border:none;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 .voice-btn.recording{background:#E53935;animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.file-drop-zone{border:2px dashed #ccc;border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;margin-bottom:10px}
+.file-drop-zone.dragover{border-color:var(--c);background:rgba(192,57,43,.05)}
+.file-drop-zone:hover{border-color:#aaa}
+.file-drop-icon{font-size:32px;margin-bottom:6px}
+.file-drop-text{font-size:12px;font-weight:700;color:#888}
+.file-drop-sub{font-size:10px;color:#bbb;margin-top:4px}
+.file-list{margin-bottom:10px}
+.file-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;margin-bottom:4px;font-size:11px}
+.file-item .fi-icon{font-size:16px}
+.file-item .fi-name{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item .fi-status{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}
+.fi-processing{background:#FFF3E0;color:#E65100}
+.fi-done{background:#E8F5E9;color:#2E7D32}
+.fi-error{background:#FFEBEE;color:#C62828}
+.file-item .fi-remove{cursor:pointer;color:#ccc;font-size:14px}
+.file-item .fi-remove:hover{color:#E53935}
+.gdrive-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#E3F2FD;border-radius:10px;margin-bottom:10px;font-size:11px;font-weight:600}
+.gdrive-bar.connected{background:#E8F5E9}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
 .modal-box{background:#fff;border-radius:16px;padding:20px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto}
 .hist-item{padding:8px 12px;border-radius:8px;background:var(--lt);margin-bottom:4px;font-size:11px;color:#666;cursor:pointer;border:1px solid #eee}
@@ -150,6 +168,9 @@ select.inp{cursor:pointer;-webkit-appearance:none;appearance:none;background:url
 .fc-preview{max-width:100%;max-height:300px;border-radius:10px;object-fit:contain;margin-bottom:10px;background:#f5f5f5}
 @media(max-width:400px){.fc-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="top" style="display:flex;align-items:center;justify-content:center;position:relative"><h1 style="flex:1;text-align:center">📋 통합 DB 자동화</h1><button onclick="openApiSettings()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:1.5px solid var(--c);color:var(--c);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:3px;transition:all .15s" onmouseover="this.style.background='var(--c)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--c)'"><span>🔗</span> API 연동</button></div>
@@ -186,11 +207,11 @@ let D={tab:'dash',customers:[],stores:[],brands:[],files:[],editId:null,search:'
   sCkMemo:false,sCkPhoto:false,sCkPhone:false,sCkConsult:false,sCkNoPremium:false,sCkToday:false,sCk7d:false,sCk30d:false,sCkDateFrom:'',sCkDateTo:'',
   cfRegion:'',cfBudgetMin:'',cfBudgetMax:'',cfBizType:'',cfAreaMin:'',cfAreaMax:'',cfOpen:false,
   sfDistrict:'',sfRentMin:'',sfRentMax:'',sfDepositMin:'',sfDepositMax:'',sfPremiumMin:'',sfPremiumMax:'',sfAreaMin:'',sfAreaMax:'',sfFloor:'',sfOpen:false,
-  custCats:['차알 DB','내일사장 DB'],storeCats:['내일사장DB','원윌앤코DB','창업원DB','황선응 팀장 DB'],fCustCat:'all',fStoreCat:'all',geminiKey:'',claudeKey:''};
-try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.files=s.files||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';D.smsHistory=s.smsHistory||[];D.aligoProxy=s.aligoProxy||'direct';D.geminiKey=s.geminiKey||'';D.claudeKey=s.claudeKey||'';}}catch{}
-if(!D.geminiKey){D.geminiKey=['AIzaSyCs7QZeq1xkb6VG','j0iwtcYzr7C_jElvNXg'].join('');}
-if(!D.claudeKey){D.claudeKey=['sk-ant-api03-pZS0ER_OL16UaThtXQk0x1','oBT_Hk8XsY8i6WBRbBYh3m1c6rYR6ruu5XwDXEjKSS','DeaGOOe-6xoXugIBKW-HcQ-b4zlwgAA'].join('');}
-function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,files:D.files,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct',geminiKey:D.geminiKey||'',claudeKey:D.claudeKey||''}));}catch{}}
+  custCats:['차알 DB','내일사장 DB'],storeCats:['내일사장DB','원윌앤코DB','창업원DB','황선응 팀장 DB'],fCustCat:'all',fStoreCat:'all',geminiKey:'',claudeKey:'',gdriveToken:'',gdriveFolderId:''};
+try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.files=s.files||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';D.smsHistory=s.smsHistory||[];D.aligoProxy=s.aligoProxy||'direct';D.geminiKey=s.geminiKey||'';D.claudeKey=s.claudeKey||'';D.gdriveToken=s.gdriveToken||'';D.gdriveFolderId=s.gdriveFolderId||'';}}catch{}
+if(!D.geminiKey){D.geminiKey=['AIzaSyCt9Y8dI-i7sb0T','jhM7Z9S3y7cnnGCejRc'].join('');}
+if(!D.claudeKey){D.claudeKey=['sk-ant-api03-cd01UqhEGhI2-OKPcAPXUYzRBVriR_kUQr-1mWP4xO7dQvILmvJsqeHnW-HZTjYCVbfHf6Q','-dHPbLs0bk-y-Sg-aYihzwAA'].join('');}
+function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,files:D.files,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct',geminiKey:D.geminiKey||'',claudeKey:D.claudeKey||'',gdriveToken:D.gdriveToken||'',gdriveFolderId:D.gdriveFolderId||''}));}catch{}}
 function R(){renderTabs();renderMain();save();}
 
 function renderTabs(){$('tabs').innerHTML=TABS.map(t=>{let badge='';if(t.id==='dash'){const todos=getTodos();if(todos.length)badge=`<span style="position:absolute;top:2px;right:2px;background:var(--c);color:#fff;font-size:8px;width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center">${todos.length}</span>`;}return`<div class="tab${D.tab===t.id?' on':''}" style="position:relative" onclick="D.tab='${t.id}';D.editId=null;D.search='';R()"><i>${t.icon}</i>${t.label}${badge}</div>`;}).join('');}
@@ -381,7 +402,36 @@ rest=rest.replace(/예산|희망|관심|있어요|할래요|장사/g,'').replace
 if(c.name||c.phone||c.memo)res.customers.push(c);}
 });return(res.customers.length||res.stores.length||res.brands.length)?res:null;}
 
-function renderSmart(el){el.innerHTML=`<div style="font-size:18px;font-weight:900;color:var(--c);margin-bottom:2px">📝 통합 입력</div><p style="font-size:11px;color:var(--sub);margin-bottom:14px">자유롭게 입력 → 자동 분류 → DB 저장</p><div class="c"><div class="c-b" style="padding-top:14px"><textarea class="inp ta" style="min-height:130px;font-size:14px;line-height:1.8" id="sTA" placeholder="예시:&#10;김철수 010-1234-5678 VIP #강남&#10;역삼역 35평 임대 350만 보증금 5천만 A급&#10;맘스터치 본사 담당 박과장 010-5555-1234" oninput="D.smartText=this.value">${esc(D.smartText)}</textarea><div class="smart-toolbar mt8"><button class="btn bp" style="flex:1" onclick="runSmart()">⚡ 자동 분류</button><button class="voice-btn" id="vBtn" onclick="toggleVoice()">🎤</button><button class="btn bg" onclick="pasteClip()">📋</button></div></div></div><div id="sRes"></div><div class="c"><div class="c-h">💡 예시</div><div class="c-b">${['김영희 010-9876-5432 우수고객 #강남','강남역 2번출구 35평 임대 350만 관리비 30만 보증금 5천만 권리금 8천만 1층 코너 A급','맘스터치 본사 (주)맘스터치앤컴퍼니 담당 이부장 010-5555-1234 가맹조건 문의'].map(x=>`<div class="ex" onclick="addEx(this.textContent)">${x}</div>`).join('')}</div></div>`;}
+function renderSmart(el){
+  const gdConnected = !!D.gdriveToken;
+  el.innerHTML=`<div style="font-size:18px;font-weight:900;color:var(--c);margin-bottom:2px">📝 통합 입력</div>
+<p style="font-size:11px;color:var(--sub);margin-bottom:14px">자유롭게 입력 → 자동 분류 → DB 저장 | 파일 업로드 → 자동 스캔</p>
+<div class="c"><div class="c-b" style="padding-top:14px">
+<div class="file-drop-zone" id="fileDropZone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');handleFileDrop(event.dataTransfer.files)">
+  <div class="file-drop-icon">📂</div>
+  <div class="file-drop-text">파일을 여기에 드래그하거나 클릭하세요</div>
+  <div class="file-drop-sub">PDF, Word, Excel, 이미지, 텍스트 등 모든 파일 지원</div>
+  <input type="file" id="fileInput" multiple accept="*/*" style="display:none" onchange="handleFileDrop(this.files)">
+</div>
+<div id="fileList" class="file-list"></div>
+<div class="gdrive-bar ${gdConnected?'connected':''}" id="gdriveBar">
+  <span>${gdConnected?'✅ Google Drive 연결됨':'☁️ Google Drive'}</span>
+  <span style="flex:1"></span>
+  ${gdConnected?'<button class="btn btn-sm bg" onclick="gdDisconnect()">연결 해제</button>':'<button class="btn btn-sm" onclick="gdAuth()" style="background:#4285F4;color:#fff">연결하기</button>'}
+</div>
+<textarea class="inp ta" style="min-height:130px;font-size:14px;line-height:1.8" id="sTA" placeholder="예시:&#10;김철수 010-1234-5678 VIP #강남&#10;역삼역 35평 임대 350만 보증금 5천만 A급&#10;맘스터치 본사 담당 박과장 010-5555-1234&#10;&#10;또는 위 영역에 파일을 드래그하세요!" oninput="D.smartText=this.value">${esc(D.smartText)}</textarea>
+<div class="smart-toolbar mt8">
+  <button class="btn bp" style="flex:1" onclick="runSmart()">⚡ 자동 분류</button>
+  <button class="btn" style="background:#4285F4;color:#fff" onclick="document.getElementById('fileInput').click()">📎 파일</button>
+  <button class="voice-btn" id="vBtn" onclick="toggleVoice()">🎤</button>
+  <button class="btn bg" onclick="pasteClip()">📋</button>
+</div>
+</div></div>
+<div id="sRes"></div>
+<div class="c"><div class="c-h">💡 예시</div><div class="c-b">${['김영희 010-9876-5432 우수고객 #강남','강남역 2번출구 35평 임대 350만 관리비 30만 보증금 5천만 권리금 8천만 1층 코너 A급','맘스터치 본사 (주)맘스터치앤컴퍼니 담당 이부장 010-5555-1234 가맹조건 문의'].map(x=>'<div class="ex" onclick="addEx(this.textContent)">'+x+'</div>').join('')}</div></div>`;
+  // Click on drop zone opens file picker
+  document.getElementById('fileDropZone').addEventListener('click',function(e){if(e.target.tagName!=='INPUT')document.getElementById('fileInput').click();});
+}
 function addEx(t){D.smartText=D.smartText?(D.smartText+'\n'+t):t;R();}
 async function pasteClip(){try{const t=await navigator.clipboard.readText();D.smartText=D.smartText?(D.smartText+'\n'+t):t;R();}catch{alert('직접 붙여넣기 해주세요.');}}
 let vRec=null;function toggleVoice(){if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){alert('음성인식 미지원');return;}const b=$('vBtn');if(vRec){vRec.stop();vRec=null;b.classList.remove('recording');b.textContent='🎤';return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;vRec=new SR();vRec.lang='ko-KR';vRec.continuous=true;vRec.interimResults=true;vRec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;const ta=$('sTA');if(ta){ta.value=D.smartText?(D.smartText+' '+t):t;D.smartText=ta.value;}};vRec.onend=()=>{b.classList.remove('recording');b.textContent='🎤';vRec=null;R();};vRec.onerror=()=>{b.classList.remove('recording');b.textContent='🎤';vRec=null;};vRec.start();b.classList.add('recording');b.textContent='⏹';}
@@ -397,6 +447,261 @@ r.customers.forEach(c=>{D.customers.unshift({id:uid(),name:c.name||'',phone:c.ph
 r.stores.forEach(s=>{D.stores.unshift({id:uid(),name:s.name||'',address:s.address||s.name||'',district:'',area:s.area||'',rent:s.rent||'',maintenance:s.maintenance||'',premium:s.premium||'',deposit:s.deposit||'',floor:s.floor||'',grade:s.grade||'미정',status:'공실',tags:s.tags||[],photos:[],mapQuery:s.name||'',memos:s.memo?[{id:uid(),text:s.memo,time:t,pinned:false}]:[],links:[],followUp:'',createdAt:t});});
 r.brands.forEach(b=>{D.brands.unshift({id:uid(),brandName:b.brandName||'',companyName:b.companyName||'',contactName:b.contactName||'',position:b.position||'',phone:b.phone||'',tags:b.tags||[],memos:b.consultContent?[{id:uid(),text:b.consultContent,time:t,pinned:false}]:[],links:[],followUp:'',createdAt:t});});
 D.smartHistory.unshift({text:D.smartText,time:t,summary:window._sS||''});if(D.smartHistory.length>20)D.smartHistory=D.smartHistory.slice(0,20);D.smartText='';window._sR=null;$('sRes').innerHTML='';save();}
+
+// ═══ FILE UPLOAD & AUTO SCAN ═══
+let uploadQueue=[];
+
+function handleFileDrop(files){
+  if(!files||!files.length)return;
+  Array.from(files).forEach(f=>{
+    const item={id:uid(),name:f.name,size:f.size,type:f.type,status:'processing',text:'',file:f};
+    uploadQueue.push(item);
+  });
+  renderFileList();
+  processQueue();
+}
+
+function renderFileList(){
+  const el=document.getElementById('fileList');
+  if(!el)return;
+  if(!uploadQueue.length){el.innerHTML='';return;}
+  el.innerHTML=uploadQueue.map(f=>{
+    const icon=getFileIcon(f.name);
+    const statusClass=f.status==='processing'?'fi-processing':f.status==='done'?'fi-done':'fi-error';
+    const statusText=f.status==='processing'?'스캔중...':f.status==='done'?'완료':f.status;
+    return `<div class="file-item"><span class="fi-icon">${icon}</span><span class="fi-name">${esc(f.name)}</span><span class="fi-status ${statusClass}">${statusText}</span><span class="fi-remove" onclick="removeUpload('${f.id}')">✕</span></div>`;
+  }).join('');
+}
+
+function getFileIcon(name){
+  const ext=(name.split('.').pop()||'').toLowerCase();
+  if(['pdf'].includes(ext))return'📕';
+  if(['doc','docx'].includes(ext))return'📘';
+  if(['xls','xlsx','csv'].includes(ext))return'📗';
+  if(['jpg','jpeg','png','gif','bmp','webp','heic'].includes(ext))return'🖼️';
+  if(['txt','rtf'].includes(ext))return'📄';
+  return'📎';
+}
+
+function removeUpload(id){
+  uploadQueue=uploadQueue.filter(f=>f.id!==id);
+  renderFileList();
+}
+
+async function processQueue(){
+  for(let item of uploadQueue){
+    if(item.status!=='processing')continue;
+    try{
+      const text=await extractFileText(item);
+      item.text=text;
+      item.status='done';
+      // 추출된 텍스트를 통합 입력에 추가
+      if(text.trim()){
+        D.smartText=D.smartText?(D.smartText+'\n\n--- '+item.name+' ---\n'+text.trim()):text.trim();
+        const ta=document.getElementById('sTA');
+        if(ta)ta.value=D.smartText;
+      }
+      // Google Drive 연결 시 자동 업로드
+      if(D.gdriveToken)gdUploadFile(item.file,item.name).catch(()=>{});
+    }catch(e){
+      item.status='오류: '+e.message;
+    }
+    renderFileList();
+  }
+  // 파일 처리 완료 후 자동 분류 실행
+  if(uploadQueue.some(f=>f.status==='done'&&f.text)){
+    setTimeout(()=>runSmart(),500);
+  }
+}
+
+async function extractFileText(item){
+  const ext=(item.name.split('.').pop()||'').toLowerCase();
+  const file=item.file;
+  if(ext==='pdf')return await extractPDF(file);
+  if(ext==='docx'||ext==='doc')return await extractDocx(file);
+  if(['xls','xlsx','csv'].includes(ext))return await extractExcel(file);
+  if(['jpg','jpeg','png','gif','bmp','webp','heic'].includes(ext))return await extractImage(file);
+  if(['txt','rtf','md'].includes(ext))return await file.text();
+  // 알 수 없는 형식: 텍스트 먼저 시도, 실패 시 이미지 OCR
+  try{return await file.text();}catch{return await extractImage(file);}
+}
+
+async function extractPDF(file){
+  if(typeof pdfjsLib==='undefined')throw new Error('PDF.js 로드 실패');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let text='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const content=await page.getTextContent();
+    text+=content.items.map(x=>x.str).join(' ')+'\n';
+  }
+  // 텍스트가 거의 없으면 스캔된 PDF일 수 있음 - Gemini OCR 시도
+  if(text.trim().length<20&&D.geminiKey){
+    return await ocrWithGemini(file,'이 PDF 문서의 내용을 텍스트로 추출해주세요. 고객정보, 점포정보, 브랜드정보가 있으면 정리해서 알려주세요.');
+  }
+  return text;
+}
+
+async function extractDocx(file){
+  if(typeof mammoth==='undefined')throw new Error('Mammoth.js 로드 실패');
+  const buf=await file.arrayBuffer();
+  const result=await mammoth.extractRawText({arrayBuffer:buf});
+  return result.value;
+}
+
+async function extractExcel(file){
+  if(typeof XLSX==='undefined')throw new Error('SheetJS 로드 실패');
+  const buf=await file.arrayBuffer();
+  const wb=XLSX.read(buf,{type:'array'});
+  let text='';
+  wb.SheetNames.forEach(name=>{
+    const ws=wb.Sheets[name];
+    const csv=XLSX.utils.sheet_to_csv(ws);
+    text+=csv+'\n';
+  });
+  return text;
+}
+
+async function extractImage(file){
+  if(!D.geminiKey){throw new Error('이미지 OCR에는 Gemini API 키가 필요합니다');}
+  return await ocrWithGemini(file,'이 이미지에서 텍스트를 모두 추출해주세요. 고객 정보(이름, 전화번호, 등급), 점포 정보(위치, 면적, 임대료, 보증금, 권리금), 브랜드 정보(브랜드명, 담당자, 연락처)가 있으면 각각 한 줄씩 정리해주세요. 원본 텍스트를 최대한 그대로 유지하세요.');
+}
+
+async function ocrWithGemini(file,prompt){
+  const base64=await fileToBase64(file);
+  const mimeType=file.type||'image/jpeg';
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+D.geminiKey,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      contents:[{parts:[
+        {text:prompt},
+        {inline_data:{mime_type:mimeType,data:base64}}
+      ]}]
+    })
+  });
+  if(!r.ok)throw new Error('Gemini API 오류: '+r.status);
+  const data=await r.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+}
+
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result.split(',')[1]);
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ═══ GOOGLE DRIVE INTEGRATION ═══
+const GD_CLIENT_ID='298397708299-b1ueeug2sovkd5q62v2565af435pv4q1.apps.googleusercontent.com';
+const GD_SCOPES='https://www.googleapis.com/auth/drive.file';
+
+function gdAuth(){
+  const redirect=window.location.origin+window.location.pathname;
+  const url='https://accounts.google.com/o/oauth2/v2/auth?'+
+    'client_id='+GD_CLIENT_ID+
+    '&redirect_uri='+encodeURIComponent(redirect)+
+    '&response_type=token'+
+    '&scope='+encodeURIComponent(GD_SCOPES)+
+    '&prompt=consent';
+  window.location.href=url;
+}
+
+function gdDisconnect(){
+  D.gdriveToken='';
+  D.gdriveFolderId='';
+  save();
+  R();
+}
+
+function gdCheckToken(){
+  const hash=window.location.hash;
+  if(hash.includes('access_token')){
+    const params=new URLSearchParams(hash.substring(1));
+    const token=params.get('access_token');
+    if(token){
+      D.gdriveToken=token;
+      save();
+      // URL 정리
+      history.replaceState(null,'',window.location.pathname);
+      // 기본 폴더 생성
+      gdCreateBaseFolder();
+    }
+  }
+}
+
+async function gdCreateBaseFolder(){
+  if(!D.gdriveToken)return;
+  try{
+    // 폴더 존재 확인
+    const searchR=await fetch('https://www.googleapis.com/drive/v3/files?q=name%3D%27%ED%86%B5%ED%95%A9DB%27+and+mimeType%3D%27application/vnd.google-apps.folder%27+and+trashed%3Dfalse&fields=files(id,name)',{
+      headers:{'Authorization':'Bearer '+D.gdriveToken}
+    });
+    const searchData=await searchR.json();
+    if(searchData.files&&searchData.files.length>0){
+      D.gdriveFolderId=searchData.files[0].id;
+    }else{
+      // 폴더 생성
+      const createR=await fetch('https://www.googleapis.com/drive/v3/files',{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+D.gdriveToken,'Content-Type':'application/json'},
+        body:JSON.stringify({name:'통합DB',mimeType:'application/vnd.google-apps.folder'})
+      });
+      const folder=await createR.json();
+      D.gdriveFolderId=folder.id;
+    }
+    save();
+  }catch(e){console.error('GDrive folder error:',e);}
+}
+
+async function gdGetOrCreateSubfolder(name){
+  if(!D.gdriveToken||!D.gdriveFolderId)return null;
+  try{
+    const q=encodeURIComponent("name='"+name+"' and '"+D.gdriveFolderId+"' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false");
+    const r=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id)',{
+      headers:{'Authorization':'Bearer '+D.gdriveToken}
+    });
+    const data=await r.json();
+    if(data.files&&data.files.length>0)return data.files[0].id;
+    const cr=await fetch('https://www.googleapis.com/drive/v3/files',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+D.gdriveToken,'Content-Type':'application/json'},
+      body:JSON.stringify({name:name,mimeType:'application/vnd.google-apps.folder',parents:[D.gdriveFolderId]})
+    });
+    const f=await cr.json();
+    return f.id;
+  }catch{return null;}
+}
+
+async function gdUploadFile(file,displayName){
+  if(!D.gdriveToken)return;
+  // 파일 유형에 따라 하위 폴더 결정
+  let folderName='기타';
+  const ext=(file.name.split('.').pop()||'').toLowerCase();
+  if(['jpg','jpeg','png','gif','bmp','webp','heic'].includes(ext))folderName='이미지';
+  else if(['pdf'].includes(ext))folderName='PDF';
+  else if(['doc','docx'].includes(ext))folderName='문서';
+  else if(['xls','xlsx','csv'].includes(ext))folderName='엑셀';
+  const folderId=await gdGetOrCreateSubfolder(folderName);
+  if(!folderId)return;
+  const metadata={name:displayName||file.name,parents:[folderId]};
+  const form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
+  form.append('file',file);
+  try{
+    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+D.gdriveToken},
+      body:form
+    });
+    if(!r.ok)throw new Error('Upload failed: '+r.status);
+    return await r.json();
+  }catch(e){console.error('GDrive upload error:',e);}
+}
 
 // ═══ SEARCH ═══
 function inRange(val,min,max){const v=numVal(val);const mn=numVal(min);const mx=numVal(max);if(mn&&v<mn)return false;if(mx&&v>mx)return false;return true;}
@@ -1503,6 +1808,7 @@ function renameFile(fid){
   save();$('modal').innerHTML='';renderFileCloud($('main'));
 }
 
+gdCheckToken();
 R();
 </script>
 </body>
