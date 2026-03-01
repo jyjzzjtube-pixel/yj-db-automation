@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#C0392B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>통합 DB</title>
+<title>통합 DB v5.1</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--c:#C0392B;--c2:#E74C3C;--bg:#FAFAF8;--card:#fff;--bd:#EDEDED;--tx:#1A1A1A;--sub:#888;--lt:#F7F6F4}
@@ -173,7 +173,7 @@ select.inp{cursor:pointer;-webkit-appearance:none;appearance:none;background:url
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-<div class="top" style="display:flex;align-items:center;justify-content:center;position:relative"><h1 style="flex:1;text-align:center">📋 통합 DB 자동화</h1><button onclick="openApiSettings()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:1.5px solid var(--c);color:var(--c);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:3px;transition:all .15s" onmouseover="this.style.background='var(--c)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--c)'"><span>🔗</span> API 연동</button></div>
+<div class="top" style="display:flex;align-items:center;justify-content:center;position:relative"><h1 style="flex:1;text-align:center">📋 통합 DB 자동화 <span style="font-size:10px;font-weight:500;color:#999">v5.1</span></h1><button onclick="openApiSettings()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:1.5px solid var(--c);color:var(--c);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:3px;transition:all .15s" onmouseover="this.style.background='var(--c)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--c)'"><span>🔗</span> API 연동</button></div>
 <div class="tabs" id="tabs"></div>
 <div class="main" id="main"></div>
 <div id="modal"></div>
@@ -187,8 +187,9 @@ const todayDot=()=>{const d=new Date();return`${d.getFullYear()}.${String(d.getM
 const fW=n=>{if(!n&&n!==0)return'';const v=typeof n==='string'?parseInt(n.replace(/[, ]/g,'')):n;if(isNaN(v)||v===0)return'';if(v>=1e8)return(v/1e8).toFixed(1).replace(/\.0$/,'')+'억';if(v>=1e4)return Math.round(v/1e4)+'만';return v.toLocaleString();};
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const numVal=v=>{if(!v)return 0;const s=String(v).replace(/[, ]/g,'');
-const m=s.match(/(\d+)\s*억\s*(\d*)\s*(천만|만)?/);if(m){let r=parseInt(m[1])*1e8;if(m[2]&&m[3]==='천만')r+=parseInt(m[2])*1e7;else if(m[2]&&m[3]==='만')r+=parseInt(m[2])*1e4;else if(m[2])r+=parseInt(m[2])*1e4;return r;}
+const m=s.match(/(\d+)\s*억\s*(\d*)\s*(천만|백만|만)?/);if(m){let r=parseInt(m[1])*1e8;if(m[2]&&m[3]==='천만')r+=parseInt(m[2])*1e7;else if(m[2]&&m[3]==='백만')r+=parseInt(m[2])*1e6;else if(m[2]&&m[3]==='만')r+=parseInt(m[2])*1e4;else if(m[2])r+=parseInt(m[2])*1e4;return r;}
 const m2=s.match(/(\d+)\s*천만/);if(m2)return parseInt(m2[1])*1e7;
+const m25=s.match(/(\d+)\s*백만/);if(m25)return parseInt(m25[1])*1e6;
 const m3=s.match(/(\d+)\s*만/);if(m3)return parseInt(m3[1])*1e4;
 return parseInt(s)||0;};
 
@@ -209,9 +210,15 @@ let D={tab:'dash',customers:[],stores:[],brands:[],files:[],editId:null,search:'
   sfDistrict:'',sfRentMin:'',sfRentMax:'',sfDepositMin:'',sfDepositMax:'',sfPremiumMin:'',sfPremiumMax:'',sfAreaMin:'',sfAreaMax:'',sfFloor:'',sfOpen:false,
   custCats:['차알 DB','내일사장 DB'],storeCats:['내일사장DB','원윌앤코DB','창업원DB','황선응 팀장 DB'],fCustCat:'all',fStoreCat:'all',geminiKey:'',claudeKey:'',gdriveToken:'',gdriveFolderId:''};
 try{const s=JSON.parse(localStorage.getItem('udb6'));if(s){D.customers=s.customers||[];D.stores=s.stores||[];D.brands=s.brands||[];D.files=s.files||[];D.smartHistory=s.smartHistory||[];D.custCats=s.custCats||D.custCats;D.storeCats=s.storeCats||D.storeCats;D.aligoKey=s.aligoKey||'';D.aligoId=s.aligoId||'';D.aligoSender=s.aligoSender||'';D.aligoTest=s.aligoTest||'Y';D.smsHistory=s.smsHistory||[];D.aligoProxy=s.aligoProxy||'direct';D.geminiKey=s.geminiKey||'';D.claudeKey=s.claudeKey||'';D.gdriveToken=s.gdriveToken||'';D.gdriveFolderId=s.gdriveFolderId||'';}}catch{}
-if(!D.geminiKey){D.geminiKey=['AIzaSyCt9Y8dI-i7sb0T','jhM7Z9S3y7cnnGCejRc'].join('');}
-if(!D.claudeKey){D.claudeKey=['sk-ant-api03-cd01UqhEGhI2-OKPcAPXUYzRBVriR_kUQr-1mWP4xO7dQvILmvJsqeHnW-HZTjYCVbfHf6Q','-dHPbLs0bk-y-Sg-aYihzwAA'].join('');}
-function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,files:D.files,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct',geminiKey:D.geminiKey||'',claudeKey:D.claudeKey||'',gdriveToken:D.gdriveToken||'',gdriveFolderId:D.gdriveFolderId||''}));}catch{}}
+// ═══ SHA-256 PASSWORD VERIFICATION ═══
+const PW_HASH='878f96264ece1c85973dfa3b39dec9a7dc4cf6f08168ff5a183389a36b1bb9d0';
+async function sha256(str){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function verifyPassword(input){return(await sha256(input))===PW_HASH;}
+
+// API keys must be configured by user via Settings > API 연동
+if(!D.geminiKey){D.geminiKey='';}
+if(!D.claudeKey){D.claudeKey='';}
+function save(){try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,files:D.files,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct',geminiKey:D.geminiKey||'',claudeKey:D.claudeKey||'',gdriveToken:D.gdriveToken||'',gdriveFolderId:D.gdriveFolderId||''}));}catch(e){if(e.name==='QuotaExceededError'||e.code===22){alert('저장 공간이 부족합니다. 불필요한 파일이나 사진을 삭제한 후 다시 시도해주세요.\n\n현재 사용량: '+((JSON.stringify(D).length/1024/1024).toFixed(1))+'MB / 5MB');const trimFiles=D.files.filter(f=>f.data).sort((a,b)=>(b.size||0)-(a.size||0));if(trimFiles.length){const biggest=trimFiles[0];if(confirm('가장 큰 파일 "'+biggest.name+'" ('+((biggest.size||0)/1024).toFixed(0)+'KB)의 데이터를 제거하시겠습니까?')){biggest.data=null;try{localStorage.setItem('udb6',JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,files:D.files,smartHistory:D.smartHistory,custCats:D.custCats,storeCats:D.storeCats,aligoKey:D.aligoKey,aligoId:D.aligoId,aligoSender:D.aligoSender,aligoTest:D.aligoTest,smsHistory:D.smsHistory||[],aligoProxy:D.aligoProxy||'direct',geminiKey:D.geminiKey||'',claudeKey:D.claudeKey||'',gdriveToken:D.gdriveToken||'',gdriveFolderId:D.gdriveFolderId||''}));}catch{}}}}else{console.error('localStorage save error:',e);}}}
 function R(){renderTabs();renderMain();save();}
 
 function renderTabs(){$('tabs').innerHTML=TABS.map(t=>{let badge='';if(t.id==='dash'){const todos=getTodos();if(todos.length)badge=`<span style="position:absolute;top:2px;right:2px;background:var(--c);color:#fff;font-size:8px;width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center">${todos.length}</span>`;}return`<div class="tab${D.tab===t.id?' on':''}" style="position:relative" onclick="D.tab='${t.id}';D.editId=null;D.search='';R()"><i>${t.icon}</i>${t.label}${badge}</div>`;}).join('');}
@@ -966,13 +973,19 @@ el.innerHTML=`<div class="fb mb12"><button class="btn bg" onclick="D.editId=null
 <div style="font-size:10px;color:#ccc;margin-top:8px">등록: ${b.createdAt} ${tagsHTML(b.tags)}</div>
 </div></div>${linksHTML('brand',b)}${memoHTML('brands',b)}${actHTML(b)}`;}
 
+// ═══ INPUT VALIDATION ═══
+const PHONE_VALIDATE=/^(0\d{1,2}-?\d{3,4}-?\d{4})?$/;
+function validatePhone(v){if(!v)return true;const cleaned=v.replace(/[\s-]/g,'');if(!/^0\d{9,10}$/.test(cleaned)){return false;}return true;}
+function formatPhone(v){if(!v)return'';const c=v.replace(/[^\d]/g,'');if(c.length===11)return c.replace(/(\d{3})(\d{4})(\d{4})/,'$1-$2-$3');if(c.length===10)return c.replace(/(\d{2,3})(\d{3,4})(\d{4})/,'$1-$2-$3');return v;}
+function validateRequired(fields){const missing=fields.filter(f=>!f.value||!f.value.trim());if(missing.length){alert('필수 항목을 입력해주세요: '+missing.map(f=>f.label).join(', '));return false;}return true;}
+
 // ═══ CRUD ═══
 function addCust(){D.customers.unshift({id:uid(),name:'',phone:'',grade:'일반',status:'신규',tags:[],memos:[],consultHistory:[],links:[],followUp:'',interests:'',region:'',budget:'',bizType:'',wantArea:'',createdAt:now()});D.editId=D.customers[0].id;D.tab='cust';R();}
 function addStore(){D.stores.unshift({id:uid(),name:'',address:'',floor:'',area:'',rent:'',maintenance:'',premium:'',deposit:'',district:'',grade:'미정',status:'공실',marketRent:'',marketDeposit:'',tags:[],photos:[],mapQuery:'',memos:[],links:[],followUp:'',createdAt:now()});D.editId=D.stores[0].id;D.tab='store';R();}
 function addBrand(){D.brands.unshift({id:uid(),brandName:'',companyName:'',contactName:'',position:'',phone:'',tags:[],memos:[],links:[],followUp:'',createdAt:now()});D.editId=D.brands[0].id;D.tab='brand';R();}
-function updItem(t,id,f,v){const x=D[t].find(i=>i.id===id);if(x)x[f]=v;save();}
-function updItemR(t,id,f,v){const x=D[t].find(i=>i.id===id);if(x)x[f]=v;R();}
-function delItem(t,id){if(!confirm('삭제?'))return;D[t]=D[t].filter(x=>x.id!==id);D.editId=null;R();}
+function updItem(t,id,f,v){const x=D[t].find(i=>i.id===id);if(!x)return;if(f==='phone'&&v){if(!validatePhone(v)){alert('올바른 전화번호 형식이 아닙니다.\n예: 010-1234-5678');return;}v=formatPhone(v);}x[f]=v;save();}
+function updItemR(t,id,f,v){const x=D[t].find(i=>i.id===id);if(!x)return;if(f==='phone'&&v){if(!validatePhone(v)){alert('올바른 전화번호 형식이 아닙니다.\n예: 010-1234-5678');return;}v=formatPhone(v);}x[f]=v;R();}
+function delItem(t,id){const item=D[t].find(x=>x.id===id);const name=item?(item.name||item.brandName||'(미입력)'):'';if(!confirm(name+' 항목을 삭제하시겠습니까?'))return;D[t]=D[t].filter(x=>x.id!==id);D.editId=null;R();}
 
 function memoHTML(t,item){const sorted=[...(item.memos||[])].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
 return`<div class="c"><div class="c-h"><span>📝 메모 (${item.memos?.length||0})</span><button class="btn bp btn-sm" onclick="addMemo('${t}','${item.id}')">+ 추가</button></div><div class="c-b"><div class="fr mb8"><input class="inp" id="mi_${item.id}" placeholder="메모 → Enter" onkeydown="if(event.key==='Enter')addMemo('${t}','${item.id}')" style="flex:1"></div>${sorted.map(m=>`<div class="memo${m.pinned?' pinned':''}"><div class="memo-t"><span>${m.pinned?'📌 ':''}🕐 ${m.time}</span><div class="fr"><button style="background:none;border:none;cursor:pointer;font-size:10px" onclick="togglePin('${t}','${item.id}','${m.id}')">${m.pinned?'📌':'📍'}</button><button style="background:none;border:none;color:#E53935;cursor:pointer;font-size:10px" onclick="delMemo('${t}','${item.id}','${m.id}')">삭제</button></div></div><div class="memo-txt">${esc(m.text)}</div></div>`).join('')}${sorted.length===0?'<div style="text-align:center;color:#ddd;font-size:12px;padding:12px">메모 입력</div>':''}</div></div>`;}
@@ -1292,16 +1305,31 @@ navigator.clipboard.writeText(txt).then(()=>alert('✅ 복사 완료!')).catch((
 // ═══ 알리고 API 프록시 지원 ═══
 async function aligoFetch(url,body){
 const proxy=D.aligoProxy||'direct';
-if(proxy==='allorigins'){
-const encoded=encodeURIComponent(url+'?'+body.toString());
-const r=await fetch('https://api.allorigins.win/raw?url='+encoded);
-return r.json();
-}else if(proxy==='corsproxy'){
-const r=await fetch('https://corsproxy.io/?'+encodeURIComponent(url),{method:'POST',body});
-return r.json();
-}else{
-const r=await fetch(url,{method:'POST',body});
-return r.json();
+const methods=[
+  {name:'direct',fn:()=>fetch(url,{method:'POST',body})},
+  {name:'allorigins',fn:()=>fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(url+'?'+body.toString()))},
+  {name:'corsproxy',fn:()=>fetch('https://corsproxy.io/?'+encodeURIComponent(url),{method:'POST',body})}
+];
+// Try selected proxy first
+const selected=methods.find(m=>m.name===proxy)||methods[0];
+const others=methods.filter(m=>m.name!==proxy);
+try{
+  const r=await selected.fn();
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return await r.json();
+}catch(e1){
+  console.warn('Primary proxy ('+proxy+') failed:',e1.message);
+  // Auto-fallback to other methods
+  for(const alt of others){
+    try{
+      const r=await alt.fn();
+      if(!r.ok)continue;
+      const data=await r.json();
+      console.info('Fallback to '+alt.name+' succeeded');
+      return data;
+    }catch{continue;}
+  }
+  throw new Error('모든 연결 방식이 실패했습니다 ('+proxy+'). 네트워크 연결을 확인하거나 설정에서 CORS 프록시를 변경해주세요.');
 }}
 
 // ═══ 연결 테스트 ═══
@@ -1376,19 +1404,19 @@ finally{if(btn){btn.disabled=false;btn.textContent='📩 알리고 발송 ('+(mo
 
 function exportAll(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,files:D.files.map(f=>({...f,data:f.data?'[DATA_OMITTED]':undefined}))},null,2)],{type:'application/json'}));a.download=`DB백업_${today()}.json`;a.click();}
 function importAll(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);D.customers=d.customers||[];D.stores=d.stores||[];D.brands=d.brands||[];if(d.files)D.files=d.files;R();alert('✅ 완료!');}catch{alert('오류');}};r.readAsText(f);e.target.value='';}
-function resetCategory(cat){
+async function resetCategory(cat){
 const labels={customers:'고객',stores:'점포',brands:'브랜드',files:'파일'};
 const label=labels[cat]||cat;
 const pw=prompt('🔒 '+label+' 데이터를 초기화하려면 비밀번호를 입력하세요:');
 if(pw===null)return;
-if(pw!=='0729'){alert('❌ 비밀번호가 틀렸습니다.');return;}
+if(!(await verifyPassword(pw))){alert('❌ 비밀번호가 틀렸습니다.');return;}
 if(!confirm('⚠️ '+label+' 데이터 '+D[cat].length+'건을 모두 삭제하시겠습니까?'))return;
 D[cat]=[];save();R();alert('✅ '+label+' 데이터가 초기화되었습니다.');
 }
-function resetAll(){
+async function resetAll(){
 const pw=prompt('🔒 전체 데이터를 초기화하려면 비밀번호를 입력하세요:');
 if(pw===null)return;
-if(pw!=='0729'){alert('❌ 비밀번호가 틀렸습니다.');return;}
+if(!(await verifyPassword(pw))){alert('❌ 비밀번호가 틀렸습니다.');return;}
 if(!confirm('⚠️ 모든 데이터(고객/점포/브랜드/파일)를 삭제합니다. 정말 진행하시겠습니까?'))return;
 D.customers=[];D.stores=[];D.brands=[];D.files=[];D.smartHistory=[];D.editId=null;save();R();alert('✅ 전체 데이터가 초기화되었습니다.');
 }
