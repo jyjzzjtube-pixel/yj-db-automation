@@ -1156,7 +1156,16 @@ function renderSettings(el){el.innerHTML=`<div style="font-size:18px;font-weight
 <button class="btn bo bf mb8" onclick="exportPhones('brand')">📱 브랜드 연락처</button>
 <button class="btn bg bf mb8" onclick="$('fi').click()">📤 불러오기</button>
 <input type="file" id="fi" accept=".json" onchange="importAll(event)" style="display:none">
-<button class="btn bd bf mt12" onclick="resetAll()">🗑 초기화</button>
+<div style="margin-top:16px;padding-top:12px;border-top:1px solid #eee">
+<div style="font-size:12px;font-weight:800;color:#C62828;margin-bottom:10px">🔒 데이터 초기화 (비밀번호 필요)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+<button class="btn bd" style="font-size:11px;padding:10px 8px" onclick="resetCategory('customers')">👥 고객 초기화</button>
+<button class="btn bd" style="font-size:11px;padding:10px 8px" onclick="resetCategory('stores')">🏪 점포 초기화</button>
+<button class="btn bd" style="font-size:11px;padding:10px 8px" onclick="resetCategory('brands')">🏷 브랜드 초기화</button>
+<button class="btn bd" style="font-size:11px;padding:10px 8px" onclick="resetCategory('files')">☁️ 파일 초기화</button>
+</div>
+<button class="btn bf mt8" style="background:#B71C1C;color:#fff;font-size:12px;font-weight:800;padding:12px" onclick="resetAll()">🗑 전체 초기화</button>
+</div>
 <div style="font-size:10px;color:#ccc;margin-top:14px;line-height:1.8">※ 자동저장 (localStorage) · 정기 백업 권장<br>※ 사진 많으면 용량 주의 (~5MB)</div>
 </div></div>
 <div class="c mt12"><div class="c-h" style="color:#1565C0">🔗 구글 연동</div><div class="c-b">
@@ -1367,7 +1376,22 @@ finally{if(btn){btn.disabled=false;btn.textContent='📩 알리고 발송 ('+(mo
 
 function exportAll(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({customers:D.customers,stores:D.stores,brands:D.brands,files:D.files.map(f=>({...f,data:f.data?'[DATA_OMITTED]':undefined}))},null,2)],{type:'application/json'}));a.download=`DB백업_${today()}.json`;a.click();}
 function importAll(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);D.customers=d.customers||[];D.stores=d.stores||[];D.brands=d.brands||[];if(d.files)D.files=d.files;R();alert('✅ 완료!');}catch{alert('오류');}};r.readAsText(f);e.target.value='';}
-function resetAll(){if(!confirm('⚠️ 전체 삭제?'))return;if(!confirm('정말?'))return;D.customers=[];D.stores=[];D.brands=[];D.files=[];D.smartHistory=[];D.editId=null;R();}
+function resetCategory(cat){
+const labels={customers:'고객',stores:'점포',brands:'브랜드',files:'파일'};
+const label=labels[cat]||cat;
+const pw=prompt('🔒 '+label+' 데이터를 초기화하려면 비밀번호를 입력하세요:');
+if(pw===null)return;
+if(pw!=='0729'){alert('❌ 비밀번호가 틀렸습니다.');return;}
+if(!confirm('⚠️ '+label+' 데이터 '+D[cat].length+'건을 모두 삭제하시겠습니까?'))return;
+D[cat]=[];save();R();alert('✅ '+label+' 데이터가 초기화되었습니다.');
+}
+function resetAll(){
+const pw=prompt('🔒 전체 데이터를 초기화하려면 비밀번호를 입력하세요:');
+if(pw===null)return;
+if(pw!=='0729'){alert('❌ 비밀번호가 틀렸습니다.');return;}
+if(!confirm('⚠️ 모든 데이터(고객/점포/브랜드/파일)를 삭제합니다. 정말 진행하시겠습니까?'))return;
+D.customers=[];D.stores=[];D.brands=[];D.files=[];D.smartHistory=[];D.editId=null;save();R();alert('✅ 전체 데이터가 초기화되었습니다.');
+}
 
 // ═══ API 설정 모달 ═══
 function getApiStatusBadge(type){
